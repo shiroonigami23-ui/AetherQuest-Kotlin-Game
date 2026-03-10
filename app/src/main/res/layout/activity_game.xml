@@ -31,6 +31,32 @@
         android:textSize="13sp" />
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_panel"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/romancePortrait"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:contentDescription="Companion portrait"
+            android:src="@drawable/portrait_nyra" />
+
+        <TextView
+            android:id="@+id/romanceInfoText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/storyChoiceRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -186,6 +212,59 @@
             android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:text="Armor+" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:weightSum="5">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buyElixirBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="Elixir" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buyBombBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:text="Bomb" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/openChestBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:text="Chest" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/secretBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:text="Secret" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/craftAccessoryBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:text="Accessory" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton

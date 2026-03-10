@@ -18,6 +18,9 @@ class MainActivity : AppCompatActivity() {
         val classes = HeroClass.entries
         binding.classPicker.setSimpleItems(classes.map { it.name.lowercase().replaceFirstChar(Char::uppercase) }.toTypedArray())
         binding.classPicker.setText("Knight", false)
+        val difficulties = DifficultyMode.entries.map { it.name.lowercase().replaceFirstChar(Char::uppercase) }.toTypedArray()
+        binding.difficultyPicker.setSimpleItems(difficulties)
+        binding.difficultyPicker.setText("Easy", false)
 
         binding.newQuestBtn.setOnClickListener {
             GameAudio.playClick()
@@ -26,7 +29,13 @@ class MainActivity : AppCompatActivity() {
                 "mystic" -> HeroClass.MYSTIC
                 else -> HeroClass.KNIGHT
             }
-            val session = GameSession(GameFactory.newProfile(selectedClass))
+            val selectedDifficulty = when (binding.difficultyPicker.text?.toString()?.trim()?.lowercase()) {
+                "story" -> DifficultyMode.STORY
+                "hard" -> DifficultyMode.HARD
+                "extreme" -> DifficultyMode.EXTREME
+                else -> DifficultyMode.EASY
+            }
+            val session = GameFactory.newSession(selectedClass, selectedDifficulty)
             SaveManager.save(this, session)
             openGame()
         }

@@ -32,8 +32,23 @@ object SaveManager {
             put("questsCompleted", p.questsCompleted)
             put("lives", p.lives)
             put("affinityNyra", p.affinityNyra)
+            put("affinityLyra", p.affinityLyra)
+            put("affinitySera", p.affinitySera)
+            put("affinityMira", p.affinityMira)
+            put("affinityKaela", p.affinityKaela)
             put("affinityCrown", p.affinityCrown)
             put("chapter", p.chapter)
+            put("strengthArc", p.strengthArc)
+            put("wisdomArc", p.wisdomArc)
+            put("empathyArc", p.empathyArc)
+            put("bombs", p.bombs)
+            put("elixirs", p.elixirs)
+            put("keys", p.keys)
+            put("relicShards", p.relicShards)
+            put("weaponName", p.weaponName)
+            put("armorName", p.armorName)
+            put("accessoryName", p.accessoryName)
+            put("relationshipStyle", p.relationshipStyle.name)
             put("gameOver", session.gameOver)
             put("ending", session.ending.name)
             put("storyPrompt", session.storyPrompt)
@@ -41,6 +56,10 @@ object SaveManager {
             put("choiceB", session.choiceB)
             put("pendingStoryEvent", session.pendingStoryEvent)
             put("storyEventsSeen", session.storyEventsSeen)
+            put("difficultyMode", session.difficultyMode.name)
+            put("discoveredSecrets", session.discoveredSecrets)
+            put("timedEventTick", session.timedEventTick)
+            put("chestReady", session.chestReady)
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -75,8 +94,23 @@ object SaveManager {
                 questsCompleted = o.optInt("questsCompleted", 0),
                 lives = o.optInt("lives", 3),
                 affinityNyra = o.optInt("affinityNyra", 0),
+                affinityLyra = o.optInt("affinityLyra", 0),
+                affinitySera = o.optInt("affinitySera", 0),
+                affinityMira = o.optInt("affinityMira", 0),
+                affinityKaela = o.optInt("affinityKaela", 0),
                 affinityCrown = o.optInt("affinityCrown", 0),
-                chapter = o.optInt("chapter", 1)
+                chapter = o.optInt("chapter", 1),
+                strengthArc = o.optInt("strengthArc", 0),
+                wisdomArc = o.optInt("wisdomArc", 0),
+                empathyArc = o.optInt("empathyArc", 0),
+                bombs = o.optInt("bombs", 1),
+                elixirs = o.optInt("elixirs", 1),
+                keys = o.optInt("keys", 0),
+                relicShards = o.optInt("relicShards", 0),
+                weaponName = o.optString("weaponName", "Rustforged Blade"),
+                armorName = o.optString("armorName", "Traveler Mail"),
+                accessoryName = o.optString("accessoryName", "Plain Charm"),
+                relationshipStyle = RelationshipStyle.valueOf(o.optString("relationshipStyle", RelationshipStyle.UNSET.name))
             )
             GameSession(
                 player = profile,
@@ -86,7 +120,11 @@ object SaveManager {
                 choiceA = o.optString("choiceA", ""),
                 choiceB = o.optString("choiceB", ""),
                 pendingStoryEvent = o.optString("pendingStoryEvent", ""),
-                storyEventsSeen = o.optString("storyEventsSeen", "")
+                storyEventsSeen = o.optString("storyEventsSeen", ""),
+                difficultyMode = DifficultyMode.valueOf(o.optString("difficultyMode", DifficultyMode.EASY.name)),
+                discoveredSecrets = o.optInt("discoveredSecrets", 0),
+                timedEventTick = o.optInt("timedEventTick", 0),
+                chestReady = o.optBoolean("chestReady", false)
             )
         } catch (_: Exception) {
             null

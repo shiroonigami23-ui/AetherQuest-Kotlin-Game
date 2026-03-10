@@ -18,10 +18,17 @@ object BattleEngine {
 
     fun startBattle(session: GameSession) {
         if (session.gameOver) return
-        session.enemy = spawnEnemy(session.player.stage)
+        val enemy = spawnEnemy(session.player.stage)
+        applyDifficultyToEnemy(session, enemy)
+        session.enemy = enemy
         session.inBattle = true
         session.shieldTurns = 0
         session.lastLog = "Encounter! ${session.enemy?.name} appears."
+        if (session.difficultyMode == DifficultyMode.STORY) {
+            session.enemy?.hp = 0
+            onVictory(session)
+            session.lastLog = "Story Mode blessing: battle auto-resolved in your favor."
+        }
     }
 
     fun playerAttack(session: GameSession) {
@@ -60,15 +67,34 @@ object BattleEngine {
 
     fun playerHeal(session: GameSession) {
         val p = session.player
-        if (p.potions <= 0) {
-            session.lastLog = "No potions left."
+        if (p.potions <= 0 && p.elixirs <= 0) {
+            session.lastLog = "No healing items left."
             return
         }
-        p.potions -= 1
-        val amount = max(12, (p.maxHp * 0.35f).toInt())
+        val amount = if (p.elixirs > 0) {
+            p.elixirs -= 1
+            max(24, (p.maxHp * 0.52f).toInt())
+        } else {
+            p.potions -= 1
+            max(12, (p.maxHp * 0.35f).toInt())
+        }
         p.hp = min(p.maxHp, p.hp + amount)
         session.lastLog = "Potion restored $amount HP."
         enemyTurn(session)
+    }
+
+    fun playerUseBomb(session: GameSession) {
+        val enemy = session.enemy ?: return
+        val p = session.player
+        if (p.bombs <= 0) {
+            session.lastLog = "No bombs available."
+            return
+        }
+        p.bombs -= 1
+        val damage = max(18, 26 + p.level * 2)
+        enemy.hp = max(0, enemy.hp - damage)
+        session.lastLog = "Bomb explodes for $damage damage."
+        if (enemy.hp <= 0) onVictory(session) else enemyTurn(session)
     }
 
     fun playerDefend(session: GameSession) {
@@ -106,6 +132,7 @@ object BattleEngine {
         p.hp = min(p.maxHp, p.hp + (p.maxHp * 0.18f).toInt())
         applyLoot(session, enemy.isBoss)
         updateQuest(session)
+        updateTimedEvents(session)
         levelUpIfNeeded(p)
         session.inBattle = false
         session.enemy = null
@@ -121,6 +148,9 @@ object BattleEngine {
 
     private fun onDefeat(session: GameSession) {
         val p = session.player
+        if (session.difficultyMode == DifficultyMode.EXTREME) {
+            p.lives = 0
+        }
         p.lives -= 1
         session.inBattle = false
         session.enemy = null
@@ -194,6 +224,47 @@ object BattleEngine {
             p.questKills = 0
             p.questTarget += 2
             session.lastLoot += " Quest complete! +$reward coins +1 gem."
+        }
+    }
+
+    private fun updateTimedEvents(session: GameSession) {
+        val p = session.player
+        session.timedEventTick += 1
+        if (session.timedEventTick % 3 == 0) {
+            session.chestReady = true
+        }
+        if (session.timedEventTick % 5 == 0) {
+            p.keys += 1
+            session.lastLoot += " Timed event: caravan gift (+1 key)."
+        }
+        if (p.stage % 7 == 0) {
+            p.relicShards += 1
+            session.discoveredSecrets += 1
+            session.lastLoot += " Secret location uncovered (+1 relic shard)."
+        }
+    }
+
+    private fun applyDifficultyToEnemy(session: GameSession, enemy: Enemy) {
+        when (session.difficultyMode) {
+            DifficultyMode.STORY -> {
+                enemy.hp = 1
+                enemy.attack = 0
+                enemy.defense = 0
+            }
+            DifficultyMode.EASY -> {
+                enemy.hp = (enemy.hp * 0.85f).toInt()
+                enemy.attack = (enemy.attack * 0.85f).toInt()
+            }
+            DifficultyMode.HARD -> {
+                enemy.hp = (enemy.hp * 1.3f).toInt()
+                enemy.attack = (enemy.attack * 1.25f).toInt()
+                enemy.defense += 4
+            }
+            DifficultyMode.EXTREME -> {
+                enemy.hp = (enemy.hp * 1.65f).toInt()
+                enemy.attack = (enemy.attack * 1.55f).toInt()
+                enemy.defense += 8
+            }
         }
     }
 }
