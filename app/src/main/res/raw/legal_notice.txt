@@ -1,0 +1,11 @@
+AetherQuest Legal Notice
+
+This game includes third-party assets under free and open licenses.
+Full source links and license details are documented in ASSET_ATTRIBUTION.md.
+
+By using this app, you agree not to reverse engineer or redistribute paid/signing materials.
+Gameplay data is stored locally on device.
+
+Copyright:
+- Game code: Shiro Studio
+- Third-party assets: respective original authors (see attribution file)

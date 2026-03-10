@@ -15,6 +15,11 @@
   - `app/src/main/res/drawable-nodpi/enemy_observer.png`
   - `app/src/main/res/drawable-nodpi/enemy_steel_eagle.png`
   - `app/src/main/res/drawable-nodpi/enemy_metal_slug.png`
+  - `app/src/main/res/drawable-nodpi/region_whispering_plains.png`
+  - `app/src/main/res/drawable-nodpi/region_frostwild_pass.png`
+  - `app/src/main/res/drawable-nodpi/region_sunken_sanctum.png`
+  - `app/src/main/res/drawable-nodpi/region_ashen_crown.png`
+  - `app/src/main/res/drawable-nodpi/region_skyforge_citadel.png`
 - Source: https://opengameart.org/content/phantasy-tiny-rpg-mobs-pack-2
 - License note in pack: personal/commercial use allowed, credit appreciated, redistribution allowed.
 - Original author: Luis Zuno (@ansimuz).
@@ -26,6 +31,9 @@
   - `app/src/main/res/raw/sfx_ui_success.wav`
   - `app/src/main/res/raw/sfx_hit.wav`
   - `app/src/main/res/raw/sfx_switch.wav`
+  - `app/src/main/res/raw/sfx_spell_dark.wav`
+  - `app/src/main/res/raw/sfx_spell_light.wav`
+  - `app/src/main/res/raw/sfx_ui_error.wav`
 - Sources:
   - Kenney UI Audio: https://github.com/Calinou/kenney-ui-audio (based on https://kenney.nl/assets/ui-audio)
   - Owlish Media SFX pack: https://opengameart.org/content/owlish-media-sound-effects

@@ -38,8 +38,12 @@ class GameActivity : AppCompatActivity() {
         }
 
         binding.skillBtn.setOnClickListener {
-            GameAudio.playSwitch()
             if (session.inBattle && !session.gameOver) {
+                when (session.player.heroClass) {
+                    HeroClass.MYSTIC -> GameAudio.playSpellDark()
+                    HeroClass.RANGER -> GameAudio.playSpellLight()
+                    HeroClass.KNIGHT -> GameAudio.playSwitch()
+                }
                 BattleEngine.playerSkill(session)
                 playPostTurnAudio()
                 render()
@@ -101,6 +105,8 @@ class GameActivity : AppCompatActivity() {
                 GameAudio.playSuccess()
                 NarrativeEngine.applyChoice(session, chooseA = true)
                 render()
+            } else {
+                GameAudio.playError()
             }
         }
 
@@ -109,6 +115,8 @@ class GameActivity : AppCompatActivity() {
                 GameAudio.playSwitch()
                 NarrativeEngine.applyChoice(session, chooseA = false)
                 render()
+            } else {
+                GameAudio.playError()
             }
         }
 
@@ -176,6 +184,7 @@ class GameActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        GameAudio.refreshSettings()
         GameAudio.startBattleMusic(this)
     }
 

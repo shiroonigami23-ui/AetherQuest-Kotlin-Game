@@ -1,0 +1,15 @@
+AetherQuest Privacy Policy (Draft)
+
+Data we store:
+- Save progress (stage, stats, story choices)
+- Audio/settings preferences
+
+Data we do not collect in this build:
+- Account identifiers
+- Personal contacts/messages
+- Precise location
+
+If analytics or crash reporting is added in future updates, this policy will be updated before release.
+
+Contact:
+Shiro Studio support channel (to be filled before store release).

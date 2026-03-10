@@ -1,0 +1,33 @@
+name: iOS Scaffold CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ios-scaffold-check:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Xcode Version
+        run: xcodebuild -version
+
+      - name: Swift Version
+        run: swift --version
+
+      - name: Validate iOS Scaffold Files
+        run: |
+          test -f iosApp/AetherQuestApp.swift
+          test -f iosApp/ContentView.swift
+          test -f iosApp/KmpBridge.swift
+          test -f iosApp/README.md
+
+      - name: Validate KMP Shared Scaffold
+        run: |
+          test -f kmp-shared/settings.gradle.kts
+          test -f kmp-shared/shared/build.gradle.kts
+          test -f kmp-shared/shared/src/commonMain/kotlin/com/shiro/aetherquest/shared/SharedGameCore.kt

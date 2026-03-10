@@ -43,6 +43,16 @@ class MainActivity : AppCompatActivity() {
                 openGame()
             }
         }
+
+        binding.settingsBtn.setOnClickListener {
+            GameAudio.playSwitch()
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        binding.legalBtn.setOnClickListener {
+            GameAudio.playSwitch()
+            startActivity(Intent(this, InfoActivity::class.java))
+        }
     }
 
     private fun openGame() {
@@ -52,6 +62,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        GameAudio.refreshSettings()
         GameAudio.startMenuMusic(this)
     }
 

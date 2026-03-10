@@ -31,6 +31,11 @@ class GameRendererView @JvmOverloads constructor(
         textSize = 40f
     }
     private val heroBitmap = BitmapFactory.decodeResource(resources, R.drawable.hero_sheet)
+    private val regionPlains = BitmapFactory.decodeResource(resources, R.drawable.region_whispering_plains)
+    private val regionFrost = BitmapFactory.decodeResource(resources, R.drawable.region_frostwild_pass)
+    private val regionSanctum = BitmapFactory.decodeResource(resources, R.drawable.region_sunken_sanctum)
+    private val regionAshen = BitmapFactory.decodeResource(resources, R.drawable.region_ashen_crown)
+    private val regionSkyforge = BitmapFactory.decodeResource(resources, R.drawable.region_skyforge_citadel)
     private val enemyDrone = BitmapFactory.decodeResource(resources, R.drawable.enemy_drone)
     private val enemySentinel = BitmapFactory.decodeResource(resources, R.drawable.enemy_sentinel)
     private val enemyObserver = BitmapFactory.decodeResource(resources, R.drawable.enemy_observer)
@@ -52,6 +57,14 @@ class GameRendererView @JvmOverloads constructor(
     }
 
     private fun drawMap(canvas: Canvas, s: GameSession) {
+        val regionBitmap = currentRegionBitmap(s.player.stage)
+        if (regionBitmap != null) {
+            val src = Rect(0, 0, regionBitmap.width, regionBitmap.height)
+            val dst = RectF(0f, 0f, width.toFloat(), height.toFloat())
+            shapePaint.alpha = 120
+            canvas.drawBitmap(regionBitmap, src, dst, shapePaint)
+            shapePaint.alpha = 255
+        }
         textPaint.textSize = 46f
         canvas.drawText("Expedition Map", 42f, 72f, textPaint)
         textPaint.textSize = 24f
@@ -98,6 +111,14 @@ class GameRendererView @JvmOverloads constructor(
 
     private fun drawBattle(canvas: Canvas, s: GameSession) {
         val enemy = s.enemy ?: return
+        val regionBitmap = currentRegionBitmap(s.player.stage)
+        if (regionBitmap != null) {
+            val src = Rect(0, 0, regionBitmap.width, regionBitmap.height)
+            val dst = RectF(0f, 0f, width.toFloat(), height.toFloat())
+            shapePaint.alpha = 100
+            canvas.drawBitmap(regionBitmap, src, dst, shapePaint)
+            shapePaint.alpha = 255
+        }
         textPaint.textSize = 42f
         canvas.drawText(if (enemy.isBoss) "Boss Encounter" else "Battle", 42f, 72f, textPaint)
 
@@ -160,6 +181,16 @@ class GameRendererView @JvmOverloads constructor(
             n.contains("acolyte") -> enemyMetalSlug
             n.contains("titan") -> enemySentinel
             else -> enemyDrone
+        }
+    }
+
+    private fun currentRegionBitmap(stage: Int): android.graphics.Bitmap? {
+        return when {
+            stage < 5 -> regionPlains
+            stage < 10 -> regionFrost
+            stage < 15 -> regionSanctum
+            stage < 20 -> regionAshen
+            else -> regionSkyforge
         }
     }
 }

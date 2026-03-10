@@ -1,0 +1,11 @@
+AetherQuest
+
+Version: 0.4+
+
+AetherQuest is a story-driven action RPG prototype built in Kotlin for Android.
+It features class-based combat, quest progression, romance/loyalty routes, and multiple endings.
+
+Roadmap:
+- Deeper boss mechanics and spell trees
+- Expanded world map and faction systems
+- iOS delivery through KMP shared game core + macOS build pipeline

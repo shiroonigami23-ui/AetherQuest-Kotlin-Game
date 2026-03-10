@@ -16,6 +16,8 @@ A production-oriented Kotlin Android fantasy RPG prototype designed for Play Sto
 - Multiple endings: Romantic, Heroic, Ruthless, Tragic
 - Death/lives system with true game-over ending
 - Save/continue progression (SharedPreferences)
+- Settings menu: music/SFX toggles + master volume
+- In-app legal/privacy/about screen
 - Custom rendered battle + world map scene (Canvas)
 - Real external assets integrated: enemy sprites, BGM, UI/combat SFX
 
@@ -23,9 +25,25 @@ A production-oriented Kotlin Android fantasy RPG prototype designed for Play Sto
 
 - External sprite sheet: `app/src/main/res/drawable-nodpi/hero_sheet.png`
 - Enemy sprite pack: `app/src/main/res/drawable-nodpi/enemy_*.png`
+- World backgrounds: `app/src/main/res/drawable-nodpi/region_*.png`
 - BGM: `app/src/main/res/raw/bgm_menu.ogg`, `bgm_battle.ogg`
 - SFX: `app/src/main/res/raw/sfx_*.wav`
 - Source + license details: `ASSET_ATTRIBUTION.md`
+
+## KMP + iOS Scaffold
+
+- KMP shared core scaffold: `kmp-shared/`
+- iOS app scaffold: `iosApp/`
+- macOS scaffold CI: `.github/workflows/ios-scaffold-macos.yml`
+
+## Play Store Release Ops
+
+- Listing draft + rating + permissions + signing docs:
+  - `docs/playstore/store-listing-draft.md`
+  - `docs/playstore/content-rating-notes.md`
+  - `docs/playstore/permissions-review.md`
+  - `docs/playstore/release-signing-pipeline.md`
+- Signed release CI template: `.github/workflows/android-release-signed.yml`
 
 ## Build
 
