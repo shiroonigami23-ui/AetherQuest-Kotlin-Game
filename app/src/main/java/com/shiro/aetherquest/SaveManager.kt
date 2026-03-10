@@ -24,6 +24,12 @@ object SaveManager {
             put("critChance", p.critChance.toDouble())
             put("potions", p.potions)
             put("skillCharges", p.skillCharges)
+            put("weaponTier", p.weaponTier)
+            put("armorTier", p.armorTier)
+            put("gems", p.gems)
+            put("questKills", p.questKills)
+            put("questTarget", p.questTarget)
+            put("questsCompleted", p.questsCompleted)
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -49,7 +55,13 @@ object SaveManager {
                 defense = o.getInt("defense"),
                 critChance = o.getDouble("critChance").toFloat(),
                 potions = o.getInt("potions"),
-                skillCharges = o.getInt("skillCharges")
+                skillCharges = o.getInt("skillCharges"),
+                weaponTier = o.optInt("weaponTier", 0),
+                armorTier = o.optInt("armorTier", 0),
+                gems = o.optInt("gems", 0),
+                questKills = o.optInt("questKills", 0),
+                questTarget = o.optInt("questTarget", 5),
+                questsCompleted = o.optInt("questsCompleted", 0)
             )
             GameSession(profile)
         } catch (_: Exception) {

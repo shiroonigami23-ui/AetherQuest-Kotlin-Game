@@ -27,7 +27,7 @@ object BattleEngine {
         val enemy = session.enemy ?: return
         val p = session.player
         val crit = Random.nextFloat() <= p.critChance
-        var damage = max(1, p.attack + Random.nextInt(0, 8) - enemy.defense / 2)
+        var damage = max(1, effectiveAttack(p) + Random.nextInt(0, 8) - enemy.defense / 2)
         if (crit) damage = (damage * 1.7f).toInt()
         enemy.hp = max(0, enemy.hp - damage)
         session.lastLog = if (crit) "Critical strike! You dealt $damage." else "You dealt $damage damage."
@@ -47,9 +47,9 @@ object BattleEngine {
         }
         p.skillCharges -= 1
         val base = when (p.heroClass) {
-            HeroClass.KNIGHT -> p.attack + 20
-            HeroClass.RANGER -> p.attack + 16
-            HeroClass.MYSTIC -> p.attack + 24
+            HeroClass.KNIGHT -> effectiveAttack(p) + 20
+            HeroClass.RANGER -> effectiveAttack(p) + 16
+            HeroClass.MYSTIC -> effectiveAttack(p) + 24
         }
         val damage = max(1, base + Random.nextInt(4, 14) - enemy.defense / 3)
         enemy.hp = max(0, enemy.hp - damage)
@@ -79,7 +79,7 @@ object BattleEngine {
     private fun enemyTurn(session: GameSession) {
         val enemy = session.enemy ?: return
         val p = session.player
-        var damage = max(1, enemy.attack + Random.nextInt(0, 7) - p.defense / 2)
+        var damage = max(1, enemy.attack + Random.nextInt(0, 7) - effectiveDefense(p) / 2)
         if (session.shieldTurns > 0) {
             damage = (damage * 0.45f).toInt().coerceAtLeast(1)
             session.shieldTurns = 0
@@ -103,10 +103,12 @@ object BattleEngine {
         p.bestStage = max(p.bestStage, p.stage)
         p.skillCharges = min(3 + p.level / 3, p.skillCharges + 1)
         p.hp = min(p.maxHp, p.hp + (p.maxHp * 0.18f).toInt())
+        applyLoot(session, enemy.isBoss)
+        updateQuest(session)
         levelUpIfNeeded(p)
         session.inBattle = false
         session.enemy = null
-        session.lastLog = "Victory! +$xpGain XP, +$coinGain coins. Stage ${p.stage} unlocked."
+        session.lastLog = "Victory! +$xpGain XP, +$coinGain coins. Stage ${p.stage} unlocked. ${session.lastLoot}"
     }
 
     private fun onDefeat(session: GameSession) {
@@ -132,6 +134,51 @@ object BattleEngine {
             p.potions += 1
             p.skillCharges = max(p.skillCharges, 3)
             needed = 80 + (p.level - 1) * 35
+        }
+    }
+
+    private fun effectiveAttack(p: PlayerProfile): Int = p.attack + p.weaponTier * 3
+
+    private fun effectiveDefense(p: PlayerProfile): Int = p.defense + p.armorTier * 3
+
+    private fun applyLoot(session: GameSession, boss: Boolean) {
+        val p = session.player
+        val roll = Random.nextFloat()
+        val rarity = when {
+            roll > 0.96f || boss -> LootRarity.EPIC
+            roll > 0.78f -> LootRarity.RARE
+            else -> LootRarity.COMMON
+        }
+        when (rarity) {
+            LootRarity.COMMON -> {
+                p.coins += 10
+                session.lastLoot = "Loot: supply pouch (+10 coins)."
+            }
+            LootRarity.RARE -> {
+                p.gems += 1
+                p.coins += 18
+                session.lastLoot = "Loot: arcane gem (+1 gem)."
+            }
+            LootRarity.EPIC -> {
+                p.gems += 2
+                p.potions += 1
+                p.coins += 35
+                session.lastLoot = "Loot: mythic cache (+2 gems, +1 potion)."
+            }
+        }
+    }
+
+    private fun updateQuest(session: GameSession) {
+        val p = session.player
+        p.questKills += 1
+        if (p.questKills >= p.questTarget) {
+            val reward = 80 + p.level * 8
+            p.coins += reward
+            p.gems += 1
+            p.questsCompleted += 1
+            p.questKills = 0
+            p.questTarget += 2
+            session.lastLoot += " Quest complete! +$reward coins +1 gem."
         }
     }
 }

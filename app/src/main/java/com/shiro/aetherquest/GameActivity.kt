@@ -54,6 +54,34 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
+        binding.buyPotionBtn.setOnClickListener {
+            if (!session.inBattle) {
+                CampEngine.buyPotion(session)
+                render()
+            }
+        }
+
+        binding.restBtn.setOnClickListener {
+            if (!session.inBattle) {
+                CampEngine.restAtCamp(session)
+                render()
+            }
+        }
+
+        binding.upgradeWeaponBtn.setOnClickListener {
+            if (!session.inBattle) {
+                CampEngine.upgradeWeapon(session)
+                render()
+            }
+        }
+
+        binding.upgradeArmorBtn.setOnClickListener {
+            if (!session.inBattle) {
+                CampEngine.upgradeArmor(session)
+                render()
+            }
+        }
+
         binding.saveExitBtn.setOnClickListener {
             SaveManager.save(this, session)
             finish()
@@ -68,7 +96,8 @@ class GameActivity : AppCompatActivity() {
     private fun render() {
         val p = session.player
         binding.headerStats.text = "${p.heroClass}  Lv.${p.level}  Stage ${p.stage}"
-        binding.subStats.text = "HP ${p.hp}/${p.maxHp}  XP ${p.xp}  Coins ${p.coins}  Wins ${p.battlesWon}"
+        binding.subStats.text = "HP ${p.hp}/${p.maxHp}  XP ${p.xp}  Coins ${p.coins}  Gems ${p.gems}"
+        binding.questText.text = "Quest: Slay ${p.questTarget} foes (${p.questKills}/${p.questTarget})  Completed: ${p.questsCompleted}  Gear W${p.weaponTier}/A${p.armorTier}"
         binding.logText.text = session.lastLog
         binding.gameView.session = session
 
@@ -78,5 +107,9 @@ class GameActivity : AppCompatActivity() {
         binding.healBtn.isEnabled = inBattle
         binding.defendBtn.isEnabled = inBattle
         binding.nextBattleBtn.isEnabled = !inBattle
+        binding.buyPotionBtn.isEnabled = !inBattle
+        binding.restBtn.isEnabled = !inBattle
+        binding.upgradeWeaponBtn.isEnabled = !inBattle
+        binding.upgradeArmorBtn.isEnabled = !inBattle
     }
 }

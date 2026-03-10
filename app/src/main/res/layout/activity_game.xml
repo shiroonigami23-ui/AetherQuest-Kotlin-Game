@@ -22,6 +22,14 @@
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
+    <TextView
+        android:id="@+id/questText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
     <com.shiro.aetherquest.GameRendererView
         android:id="@+id/gameView"
         android:layout_width="match_parent"
@@ -91,6 +99,50 @@
             android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:text="Next" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:weightSum="4">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buyPotionBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="Buy Potion" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/restBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:text="Rest" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/upgradeWeaponBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginHorizontal="2dp"
+            android:layout_weight="1"
+            android:text="Weapon+" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/upgradeArmorBtn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:text="Armor+" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton

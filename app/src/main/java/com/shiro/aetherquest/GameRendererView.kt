@@ -5,8 +5,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.min
@@ -28,6 +30,8 @@ class GameRendererView @JvmOverloads constructor(
         color = Color.WHITE
         textSize = 40f
     }
+    private val heroBitmap = BitmapFactory.decodeResource(resources, R.drawable.hero_sheet)
+    private val spriteSrc = Rect(2, 2, 16, 18)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -78,6 +82,8 @@ class GameRendererView @JvmOverloads constructor(
 
         shapePaint.color = Color.parseColor("#EAB308")
         canvas.drawRect(145f, top + 130f, 170f, top + 250f, shapePaint)
+        val dst = RectF(110f, top + 165f, 230f, top + 285f)
+        canvas.drawBitmap(heroBitmap, spriteSrc, dst, null)
         textPaint.textSize = 26f
         canvas.drawText("You", 128f, top + 370f, textPaint)
     }
@@ -97,19 +103,25 @@ class GameRendererView @JvmOverloads constructor(
         canvas.drawRoundRect(heroRect, 18f, 18f, shapePaint)
         shapePaint.color = Color.parseColor("#38BDF8")
         canvas.drawRect(heroRect.right - 18f, heroRect.top - 80f, heroRect.right + 10f, heroRect.top + 20f, shapePaint)
+        val heroDst = RectF(heroRect.left + 14f, heroRect.top + 24f, heroRect.right - 14f, heroRect.bottom - 20f)
+        canvas.drawBitmap(heroBitmap, spriteSrc, heroDst, null)
 
         val enemyRect = RectF(width * 0.67f, groundY - 230f, width * 0.88f, groundY)
         shapePaint.color = if (enemy.isBoss) Color.parseColor("#7F1D1D") else Color.parseColor("#1F2937")
         canvas.drawRoundRect(enemyRect, 18f, 18f, shapePaint)
         shapePaint.color = Color.parseColor("#F87171")
         canvas.drawRect(enemyRect.left - 10f, enemyRect.top - 70f, enemyRect.left + 14f, enemyRect.top + 40f, shapePaint)
+        val enemyDst = RectF(enemyRect.left + 12f, enemyRect.top + 22f, enemyRect.right - 12f, enemyRect.bottom - 18f)
+        shapePaint.alpha = if (enemy.isBoss) 240 else 185
+        canvas.drawBitmap(heroBitmap, spriteSrc, enemyDst, shapePaint)
+        shapePaint.alpha = 255
 
         drawHealthBar(canvas, 42f, 110f, width * 0.38f, s.player.hp, s.player.maxHp, "Hero")
         drawHealthBar(canvas, width * 0.55f, 110f, width * 0.38f, enemy.hp, enemy.maxHp, enemy.name)
 
         textPaint.textSize = 28f
         canvas.drawText("Class: ${s.player.heroClass}  Lvl ${s.player.level}", 42f, groundY + 46f, textPaint)
-        canvas.drawText("Potions: ${s.player.potions}  Skills: ${s.player.skillCharges}", 42f, groundY + 84f, textPaint)
+        canvas.drawText("Potions: ${s.player.potions}  Skills: ${s.player.skillCharges}  Gems: ${s.player.gems}", 42f, groundY + 84f, textPaint)
     }
 
     private fun drawHealthBar(canvas: Canvas, x: Float, y: Float, widthBar: Float, hp: Int, maxHp: Int, label: String) {

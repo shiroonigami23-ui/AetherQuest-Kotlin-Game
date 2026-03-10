@@ -2,6 +2,8 @@ package com.shiro.aetherquest
 
 enum class HeroClass { KNIGHT, RANGER, MYSTIC }
 
+enum class LootRarity { COMMON, RARE, EPIC }
+
 data class PlayerProfile(
     var heroClass: HeroClass,
     var level: Int = 1,
@@ -16,7 +18,13 @@ data class PlayerProfile(
     var defense: Int,
     var critChance: Float,
     var potions: Int = 3,
-    var skillCharges: Int = 3
+    var skillCharges: Int = 3,
+    var weaponTier: Int = 0,
+    var armorTier: Int = 0,
+    var gems: Int = 0,
+    var questKills: Int = 0,
+    var questTarget: Int = 5,
+    var questsCompleted: Int = 0
 )
 
 data class Enemy(
@@ -33,7 +41,8 @@ data class GameSession(
     var enemy: Enemy? = null,
     var inBattle: Boolean = false,
     var shieldTurns: Int = 0,
-    var lastLog: String = "Welcome to AetherQuest"
+    var lastLog: String = "Welcome to AetherQuest",
+    var lastLoot: String = "No loot yet"
 )
 
 object GameFactory {
