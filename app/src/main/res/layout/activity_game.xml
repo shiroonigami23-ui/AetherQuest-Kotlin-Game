@@ -30,6 +30,49 @@
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
+    <LinearLayout
+        android:id="@+id/storyChoiceRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="vertical"
+        android:background="@drawable/bg_panel"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/storyPromptText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/choiceABtn"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="Choice A" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/choiceBBtn"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="Choice B" />
+        </LinearLayout>
+    </LinearLayout>
+
     <com.shiro.aetherquest.GameRendererView
         android:id="@+id/gameView"
         android:layout_width="match_parent"
@@ -152,5 +195,13 @@
         android:layout_height="46dp"
         android:layout_marginTop="6dp"
         android:text="Save and Exit" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/newLifeBtn"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="4dp"
+        android:text="New Journey (Reset Save)" />
 
 </LinearLayout>

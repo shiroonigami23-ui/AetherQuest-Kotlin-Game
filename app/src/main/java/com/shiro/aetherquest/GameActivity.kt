@@ -14,6 +14,7 @@ class GameActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         session = SaveManager.load(this) ?: GameSession(GameFactory.newProfile(HeroClass.KNIGHT))
+        NarrativeEngine.maybeTriggerStory(session)
         setupClicks()
         render()
     }
@@ -21,7 +22,7 @@ class GameActivity : AppCompatActivity() {
     private fun setupClicks() {
         binding.nextBattleBtn.setOnClickListener {
             GameAudio.playSwitch()
-            if (!session.inBattle) {
+            if (!session.inBattle && !session.gameOver && session.pendingStoryEvent.isBlank()) {
                 BattleEngine.startBattle(session)
                 render()
             }
@@ -29,7 +30,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.attackBtn.setOnClickListener {
             GameAudio.playHit()
-            if (session.inBattle) {
+            if (session.inBattle && !session.gameOver) {
                 BattleEngine.playerAttack(session)
                 playPostTurnAudio()
                 render()
@@ -38,7 +39,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.skillBtn.setOnClickListener {
             GameAudio.playSwitch()
-            if (session.inBattle) {
+            if (session.inBattle && !session.gameOver) {
                 BattleEngine.playerSkill(session)
                 playPostTurnAudio()
                 render()
@@ -47,7 +48,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.healBtn.setOnClickListener {
             GameAudio.playClick()
-            if (session.inBattle) {
+            if (session.inBattle && !session.gameOver) {
                 BattleEngine.playerHeal(session)
                 playPostTurnAudio()
                 render()
@@ -56,7 +57,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.defendBtn.setOnClickListener {
             GameAudio.playClick()
-            if (session.inBattle) {
+            if (session.inBattle && !session.gameOver) {
                 BattleEngine.playerDefend(session)
                 playPostTurnAudio()
                 render()
@@ -65,7 +66,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.buyPotionBtn.setOnClickListener {
             GameAudio.playClick()
-            if (!session.inBattle) {
+            if (!session.inBattle && !session.gameOver) {
                 CampEngine.buyPotion(session)
                 render()
             }
@@ -73,7 +74,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.restBtn.setOnClickListener {
             GameAudio.playClick()
-            if (!session.inBattle) {
+            if (!session.inBattle && !session.gameOver) {
                 CampEngine.restAtCamp(session)
                 render()
             }
@@ -81,7 +82,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.upgradeWeaponBtn.setOnClickListener {
             GameAudio.playSwitch()
-            if (!session.inBattle) {
+            if (!session.inBattle && !session.gameOver) {
                 CampEngine.upgradeWeapon(session)
                 render()
             }
@@ -89,8 +90,24 @@ class GameActivity : AppCompatActivity() {
 
         binding.upgradeArmorBtn.setOnClickListener {
             GameAudio.playSwitch()
-            if (!session.inBattle) {
+            if (!session.inBattle && !session.gameOver) {
                 CampEngine.upgradeArmor(session)
+                render()
+            }
+        }
+
+        binding.choiceABtn.setOnClickListener {
+            if (session.pendingStoryEvent.isNotBlank() && !session.gameOver) {
+                GameAudio.playSuccess()
+                NarrativeEngine.applyChoice(session, chooseA = true)
+                render()
+            }
+        }
+
+        binding.choiceBBtn.setOnClickListener {
+            if (session.pendingStoryEvent.isNotBlank() && !session.gameOver) {
+                GameAudio.playSwitch()
+                NarrativeEngine.applyChoice(session, chooseA = false)
                 render()
             }
         }
@@ -99,6 +116,13 @@ class GameActivity : AppCompatActivity() {
             GameAudio.playSuccess()
             SaveManager.save(this, session)
             finish()
+        }
+
+        binding.newLifeBtn.setOnClickListener {
+            GameAudio.playSwitch()
+            session = GameSession(GameFactory.newProfile(session.player.heroClass))
+            SaveManager.save(this, session)
+            render()
         }
     }
 
@@ -109,22 +133,35 @@ class GameActivity : AppCompatActivity() {
 
     private fun render() {
         val p = session.player
-        binding.headerStats.text = "${p.heroClass}  Lv.${p.level}  Stage ${p.stage}"
+        val region = NarrativeEngine.regionName(p.stage)
+        binding.headerStats.text = "${p.heroClass}  Lv.${p.level}  Stage ${p.stage}  [${region}]"
         binding.subStats.text = "HP ${p.hp}/${p.maxHp}  XP ${p.xp}  Coins ${p.coins}  Gems ${p.gems}"
-        binding.questText.text = "Quest: Slay ${p.questTarget} foes (${p.questKills}/${p.questTarget})  Completed: ${p.questsCompleted}  Gear W${p.weaponTier}/A${p.armorTier}"
-        binding.logText.text = session.lastLog
+        binding.questText.text = "Chapter ${p.chapter} | Quest ${p.questKills}/${p.questTarget} | Completed ${p.questsCompleted} | Lives ${p.lives} | Nyra ${p.affinityNyra} / Crown ${p.affinityCrown}"
+        binding.logText.text = if (session.gameOver) {
+            "Ending: ${session.ending}\n${NarrativeEngine.endingText(session.ending)}"
+        } else {
+            session.lastLog
+        }
         binding.gameView.session = session
+        NarrativeEngine.maybeTriggerStory(session)
+        binding.storyChoiceRow.visibility = if (session.pendingStoryEvent.isNotBlank()) android.view.View.VISIBLE else android.view.View.GONE
+        binding.storyPromptText.text = session.storyPrompt
+        binding.choiceABtn.text = session.choiceA
+        binding.choiceBBtn.text = session.choiceB
 
         val inBattle = session.inBattle
+        val locked = session.gameOver || session.pendingStoryEvent.isNotBlank()
         binding.attackBtn.isEnabled = inBattle
         binding.skillBtn.isEnabled = inBattle
         binding.healBtn.isEnabled = inBattle
         binding.defendBtn.isEnabled = inBattle
-        binding.nextBattleBtn.isEnabled = !inBattle
-        binding.buyPotionBtn.isEnabled = !inBattle
-        binding.restBtn.isEnabled = !inBattle
-        binding.upgradeWeaponBtn.isEnabled = !inBattle
-        binding.upgradeArmorBtn.isEnabled = !inBattle
+        binding.nextBattleBtn.isEnabled = !inBattle && !locked
+        binding.buyPotionBtn.isEnabled = !inBattle && !locked
+        binding.restBtn.isEnabled = !inBattle && !locked
+        binding.upgradeWeaponBtn.isEnabled = !inBattle && !locked
+        binding.upgradeArmorBtn.isEnabled = !inBattle && !locked
+        binding.choiceABtn.isEnabled = session.pendingStoryEvent.isNotBlank() && !session.gameOver
+        binding.choiceBBtn.isEnabled = session.pendingStoryEvent.isNotBlank() && !session.gameOver
     }
 
     private fun playPostTurnAudio() {

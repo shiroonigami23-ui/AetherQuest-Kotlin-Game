@@ -54,6 +54,8 @@ class GameRendererView @JvmOverloads constructor(
     private fun drawMap(canvas: Canvas, s: GameSession) {
         textPaint.textSize = 46f
         canvas.drawText("Expedition Map", 42f, 72f, textPaint)
+        textPaint.textSize = 24f
+        canvas.drawText("Region: ${NarrativeEngine.regionName(s.player.stage)}  |  Chapter ${s.player.chapter}", 42f, 105f, textPaint)
         val totalNodes = 10
         val left = 70f
         val right = width - 70f
@@ -79,7 +81,8 @@ class GameRendererView @JvmOverloads constructor(
 
         textPaint.textSize = 30f
         canvas.drawText("Current Stage: ${s.player.stage}", 42f, top + 90f, textPaint)
-        canvas.drawText("Tap NEXT to continue your quest", 42f, top + 138f, textPaint)
+        canvas.drawText("Whispering Plains -> Frostwild -> Sanctum -> Ashen Crown", 42f, top + 132f, textPaint)
+        canvas.drawText("Tap NEXT to continue your quest", 42f, top + 170f, textPaint)
 
         shapePaint.color = Color.parseColor("#0B1220")
         val hero = RectF(120f, top + 170f, 220f, top + 340f)

@@ -9,3 +9,5 @@
 .externalNativeBuild/
 .cxx/
 third_party_assets/
+keystore/
+keystore.properties

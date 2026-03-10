@@ -3,6 +3,7 @@ package com.shiro.aetherquest
 enum class HeroClass { KNIGHT, RANGER, MYSTIC }
 
 enum class LootRarity { COMMON, RARE, EPIC }
+enum class EndingType { NONE, TRAGIC, RUTHLESS, HEROIC, ROMANTIC }
 
 data class PlayerProfile(
     var heroClass: HeroClass,
@@ -24,7 +25,11 @@ data class PlayerProfile(
     var gems: Int = 0,
     var questKills: Int = 0,
     var questTarget: Int = 5,
-    var questsCompleted: Int = 0
+    var questsCompleted: Int = 0,
+    var lives: Int = 3,
+    var affinityNyra: Int = 0,
+    var affinityCrown: Int = 0,
+    var chapter: Int = 1
 )
 
 data class Enemy(
@@ -42,7 +47,14 @@ data class GameSession(
     var inBattle: Boolean = false,
     var shieldTurns: Int = 0,
     var lastLog: String = "Welcome to AetherQuest",
-    var lastLoot: String = "No loot yet"
+    var lastLoot: String = "No loot yet",
+    var gameOver: Boolean = false,
+    var ending: EndingType = EndingType.NONE,
+    var storyPrompt: String = "",
+    var choiceA: String = "",
+    var choiceB: String = "",
+    var pendingStoryEvent: String = "",
+    var storyEventsSeen: String = ""
 )
 
 object GameFactory {

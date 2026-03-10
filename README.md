@@ -10,6 +10,11 @@ A production-oriented Kotlin Android fantasy RPG prototype designed for Play Sto
 - XP, level-ups, coins, potion economy
 - Camp systems: rest, potion shop, weapon/armor forging
 - Quest tracker + loot rarity drops
+- Story chapters with branching choices
+- World-region progression map
+- Romance/loyalty paths (Nyra vs Crown)
+- Multiple endings: Romantic, Heroic, Ruthless, Tragic
+- Death/lives system with true game-over ending
 - Save/continue progression (SharedPreferences)
 - Custom rendered battle + world map scene (Canvas)
 - Real external assets integrated: enemy sprites, BGM, UI/combat SFX

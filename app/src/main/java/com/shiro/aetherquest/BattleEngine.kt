@@ -17,6 +17,7 @@ object BattleEngine {
     }
 
     fun startBattle(session: GameSession) {
+        if (session.gameOver) return
         session.enemy = spawnEnemy(session.player.stage)
         session.inBattle = true
         session.shieldTurns = 0
@@ -109,17 +110,31 @@ object BattleEngine {
         session.inBattle = false
         session.enemy = null
         session.lastLog = "Victory! +$xpGain XP, +$coinGain coins. Stage ${p.stage} unlocked. ${session.lastLoot}"
+        NarrativeEngine.maybeTriggerStory(session)
+        val resolved = NarrativeEngine.resolveEnding(session)
+        if (resolved != EndingType.NONE) {
+            session.ending = resolved
+            session.gameOver = true
+            session.lastLog = NarrativeEngine.endingText(resolved)
+        }
     }
 
     private fun onDefeat(session: GameSession) {
         val p = session.player
+        p.lives -= 1
+        session.inBattle = false
+        session.enemy = null
+        if (p.lives <= 0) {
+            session.gameOver = true
+            session.ending = EndingType.TRAGIC
+            session.lastLog = NarrativeEngine.endingText(EndingType.TRAGIC)
+            return
+        }
         p.stage = max(1, p.stage - 1)
         p.hp = p.maxHp
         p.potions = max(1, p.potions)
         p.skillCharges = max(1, p.skillCharges)
-        session.inBattle = false
-        session.enemy = null
-        session.lastLog = "Defeated. You recover at camp and fall back to Stage ${p.stage}."
+        session.lastLog = "Defeated. Lives left: ${p.lives}. You fall back to Stage ${p.stage}."
     }
 
     private fun levelUpIfNeeded(p: PlayerProfile) {

@@ -30,6 +30,17 @@ object SaveManager {
             put("questKills", p.questKills)
             put("questTarget", p.questTarget)
             put("questsCompleted", p.questsCompleted)
+            put("lives", p.lives)
+            put("affinityNyra", p.affinityNyra)
+            put("affinityCrown", p.affinityCrown)
+            put("chapter", p.chapter)
+            put("gameOver", session.gameOver)
+            put("ending", session.ending.name)
+            put("storyPrompt", session.storyPrompt)
+            put("choiceA", session.choiceA)
+            put("choiceB", session.choiceB)
+            put("pendingStoryEvent", session.pendingStoryEvent)
+            put("storyEventsSeen", session.storyEventsSeen)
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -61,9 +72,22 @@ object SaveManager {
                 gems = o.optInt("gems", 0),
                 questKills = o.optInt("questKills", 0),
                 questTarget = o.optInt("questTarget", 5),
-                questsCompleted = o.optInt("questsCompleted", 0)
+                questsCompleted = o.optInt("questsCompleted", 0),
+                lives = o.optInt("lives", 3),
+                affinityNyra = o.optInt("affinityNyra", 0),
+                affinityCrown = o.optInt("affinityCrown", 0),
+                chapter = o.optInt("chapter", 1)
             )
-            GameSession(profile)
+            GameSession(
+                player = profile,
+                gameOver = o.optBoolean("gameOver", false),
+                ending = EndingType.valueOf(o.optString("ending", EndingType.NONE.name)),
+                storyPrompt = o.optString("storyPrompt", ""),
+                choiceA = o.optString("choiceA", ""),
+                choiceB = o.optString("choiceB", ""),
+                pendingStoryEvent = o.optString("pendingStoryEvent", ""),
+                storyEventsSeen = o.optString("storyEventsSeen", "")
+            )
         } catch (_: Exception) {
             null
         }
