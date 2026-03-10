@@ -20,6 +20,7 @@ class GameActivity : AppCompatActivity() {
 
     private fun setupClicks() {
         binding.nextBattleBtn.setOnClickListener {
+            GameAudio.playSwitch()
             if (!session.inBattle) {
                 BattleEngine.startBattle(session)
                 render()
@@ -27,34 +28,43 @@ class GameActivity : AppCompatActivity() {
         }
 
         binding.attackBtn.setOnClickListener {
+            GameAudio.playHit()
             if (session.inBattle) {
                 BattleEngine.playerAttack(session)
+                playPostTurnAudio()
                 render()
             }
         }
 
         binding.skillBtn.setOnClickListener {
+            GameAudio.playSwitch()
             if (session.inBattle) {
                 BattleEngine.playerSkill(session)
+                playPostTurnAudio()
                 render()
             }
         }
 
         binding.healBtn.setOnClickListener {
+            GameAudio.playClick()
             if (session.inBattle) {
                 BattleEngine.playerHeal(session)
+                playPostTurnAudio()
                 render()
             }
         }
 
         binding.defendBtn.setOnClickListener {
+            GameAudio.playClick()
             if (session.inBattle) {
                 BattleEngine.playerDefend(session)
+                playPostTurnAudio()
                 render()
             }
         }
 
         binding.buyPotionBtn.setOnClickListener {
+            GameAudio.playClick()
             if (!session.inBattle) {
                 CampEngine.buyPotion(session)
                 render()
@@ -62,6 +72,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         binding.restBtn.setOnClickListener {
+            GameAudio.playClick()
             if (!session.inBattle) {
                 CampEngine.restAtCamp(session)
                 render()
@@ -69,6 +80,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         binding.upgradeWeaponBtn.setOnClickListener {
+            GameAudio.playSwitch()
             if (!session.inBattle) {
                 CampEngine.upgradeWeapon(session)
                 render()
@@ -76,6 +88,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         binding.upgradeArmorBtn.setOnClickListener {
+            GameAudio.playSwitch()
             if (!session.inBattle) {
                 CampEngine.upgradeArmor(session)
                 render()
@@ -83,6 +96,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         binding.saveExitBtn.setOnClickListener {
+            GameAudio.playSuccess()
             SaveManager.save(this, session)
             finish()
         }
@@ -111,5 +125,25 @@ class GameActivity : AppCompatActivity() {
         binding.restBtn.isEnabled = !inBattle
         binding.upgradeWeaponBtn.isEnabled = !inBattle
         binding.upgradeArmorBtn.isEnabled = !inBattle
+    }
+
+    private fun playPostTurnAudio() {
+        val msg = session.lastLog.lowercase()
+        if (msg.contains("victory")) {
+            GameAudio.playSuccess()
+        }
+        if (msg.contains("defeated")) {
+            GameAudio.playSwitch()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        GameAudio.startBattleMusic(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        GameAudio.stopBattleMusic()
     }
 }

@@ -13,12 +13,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        GameAudio.init(this)
 
         val classes = HeroClass.entries
         binding.classPicker.setSimpleItems(classes.map { it.name.lowercase().replaceFirstChar(Char::uppercase) }.toTypedArray())
         binding.classPicker.setText("Knight", false)
 
         binding.newQuestBtn.setOnClickListener {
+            GameAudio.playClick()
             val selectedClass = when (binding.classPicker.text?.toString()?.trim()?.lowercase()) {
                 "ranger" -> HeroClass.RANGER
                 "mystic" -> HeroClass.MYSTIC
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.continueBtn.setOnClickListener {
+            GameAudio.playClick()
             if (SaveManager.load(this) == null) {
                 MaterialAlertDialogBuilder(this)
                     .setTitle("No Save Found")
@@ -43,6 +46,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openGame() {
+        GameAudio.playSwitch()
         startActivity(Intent(this, GameActivity::class.java))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        GameAudio.startMenuMusic(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        GameAudio.stopMenuMusic()
     }
 }

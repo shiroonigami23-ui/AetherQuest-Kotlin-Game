@@ -31,6 +31,11 @@ class GameRendererView @JvmOverloads constructor(
         textSize = 40f
     }
     private val heroBitmap = BitmapFactory.decodeResource(resources, R.drawable.hero_sheet)
+    private val enemyDrone = BitmapFactory.decodeResource(resources, R.drawable.enemy_drone)
+    private val enemySentinel = BitmapFactory.decodeResource(resources, R.drawable.enemy_sentinel)
+    private val enemyObserver = BitmapFactory.decodeResource(resources, R.drawable.enemy_observer)
+    private val enemySteelEagle = BitmapFactory.decodeResource(resources, R.drawable.enemy_steel_eagle)
+    private val enemyMetalSlug = BitmapFactory.decodeResource(resources, R.drawable.enemy_metal_slug)
     private val spriteSrc = Rect(2, 2, 16, 18)
 
     override fun onDraw(canvas: Canvas) {
@@ -112,8 +117,14 @@ class GameRendererView @JvmOverloads constructor(
         shapePaint.color = Color.parseColor("#F87171")
         canvas.drawRect(enemyRect.left - 10f, enemyRect.top - 70f, enemyRect.left + 14f, enemyRect.top + 40f, shapePaint)
         val enemyDst = RectF(enemyRect.left + 12f, enemyRect.top + 22f, enemyRect.right - 12f, enemyRect.bottom - 18f)
+        val enemyBitmap = selectEnemyBitmap(enemy.name)
         shapePaint.alpha = if (enemy.isBoss) 240 else 185
-        canvas.drawBitmap(heroBitmap, spriteSrc, enemyDst, shapePaint)
+        if (enemyBitmap != null) {
+            val src = Rect(0, 0, enemyBitmap.width, enemyBitmap.height)
+            canvas.drawBitmap(enemyBitmap, src, enemyDst, shapePaint)
+        } else {
+            canvas.drawBitmap(heroBitmap, spriteSrc, enemyDst, shapePaint)
+        }
         shapePaint.alpha = 255
 
         drawHealthBar(canvas, 42f, 110f, width * 0.38f, s.player.hp, s.player.maxHp, "Hero")
@@ -134,5 +145,18 @@ class GameRendererView @JvmOverloads constructor(
 
         textPaint.textSize = 24f
         canvas.drawText("$label $hp/$maxHp", x, y - 10f, textPaint)
+    }
+
+    private fun selectEnemyBitmap(name: String): android.graphics.Bitmap? {
+        val n = name.lowercase()
+        return when {
+            n.contains("ashfang") -> enemyDrone
+            n.contains("warden") -> enemySentinel
+            n.contains("raider") -> enemyObserver
+            n.contains("hound") -> enemySteelEagle
+            n.contains("acolyte") -> enemyMetalSlug
+            n.contains("titan") -> enemySentinel
+            else -> enemyDrone
+        }
     }
 }

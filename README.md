@@ -12,10 +12,14 @@ A production-oriented Kotlin Android fantasy RPG prototype designed for Play Sto
 - Quest tracker + loot rarity drops
 - Save/continue progression (SharedPreferences)
 - Custom rendered battle + world map scene (Canvas)
+- Real external assets integrated: enemy sprites, BGM, UI/combat SFX
 
 ## Assets
 
 - External sprite sheet: `app/src/main/res/drawable-nodpi/hero_sheet.png`
+- Enemy sprite pack: `app/src/main/res/drawable-nodpi/enemy_*.png`
+- BGM: `app/src/main/res/raw/bgm_menu.ogg`, `bgm_battle.ogg`
+- SFX: `app/src/main/res/raw/sfx_*.wav`
 - Source + license details: `ASSET_ATTRIBUTION.md`
 
 ## Build
