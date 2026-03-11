@@ -85,8 +85,19 @@ Generated outputs:
 - Hero sprite: `app/src/main/res/drawable-nodpi/hero_sheet.png`
 - Enemy sprites: `app/src/main/res/drawable-nodpi/enemy_*.png`
 - Region backgrounds: `app/src/main/res/drawable-nodpi/region_*.png`
+- World map variants: `app/src/main/res/drawable-nodpi/world_variant_*.png`
 - Audio: `app/src/main/res/raw/`
 - Attribution and third-party license details: [`ASSET_ATTRIBUTION.md`](ASSET_ATTRIBUTION.md)
+
+### Latest Free Asset Integration (v0.6.2 scope)
+- Added exploration/story BGM tracks:
+  - `bgm_explore.ogg`, `bgm_story.ogg`
+- Added RPG ambience SFX:
+  - `sfx_footstep.wav`, `sfx_loot.wav`, `sfx_tavern.wav`
+- Added additional world-render variants for stage-driven map visuals:
+  - `world_variant_drone.png`, `world_variant_observer.png`, `world_variant_sentinel.png`, `world_variant_slug.png`, `world_variant_eagle.png`
+- Added new progression resources tied to exploration/loot:
+  - `Crystal Shards`, `Weapon Cores`, `Armor Plates`
 
 ## KMP and iOS Scaffold
 - Shared Kotlin module scaffold: `kmp-shared/`

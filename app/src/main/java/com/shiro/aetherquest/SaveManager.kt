@@ -57,6 +57,9 @@ object SaveManager {
             put("elixirs", p.elixirs)
             put("keys", p.keys)
             put("relicShards", p.relicShards)
+            put("crystalShards", p.crystalShards)
+            put("weaponCores", p.weaponCores)
+            put("armorPlates", p.armorPlates)
             put("weaponName", p.weaponName)
             put("armorName", p.armorName)
             put("accessoryName", p.accessoryName)
@@ -141,6 +144,9 @@ object SaveManager {
                 elixirs = o.optInt("elixirs", 1),
                 keys = o.optInt("keys", 0),
                 relicShards = o.optInt("relicShards", 0),
+                crystalShards = o.optInt("crystalShards", 0),
+                weaponCores = o.optInt("weaponCores", 0),
+                armorPlates = o.optInt("armorPlates", 0),
                 weaponName = o.optString("weaponName", "Rustforged Blade"),
                 armorName = o.optString("armorName", "Traveler Mail"),
                 accessoryName = o.optString("accessoryName", "Plain Charm"),

@@ -46,9 +46,36 @@
 - Files:
   - `app/src/main/res/raw/bgm_menu.ogg`
   - `app/src/main/res/raw/bgm_battle.ogg`
+  - `app/src/main/res/raw/bgm_explore.ogg`
+  - `app/src/main/res/raw/bgm_story.ogg`
 - Source page: https://opengameart.org/content/free-contemplative-fantasy-music-pack
 - License on page: Creative Commons Attribution 4.0
 - Author: Ekard / Ravi Te
+
+## Additional Audio Imports
+
+- Files:
+  - `app/src/main/res/raw/sfx_footstep.wav`
+  - `app/src/main/res/raw/sfx_loot.wav`
+  - `app/src/main/res/raw/sfx_tavern.wav`
+- Sources:
+  - Owlish Media SFX pack: https://opengameart.org/content/owlish-media-sound-effects
+  - Kenney UI Audio: https://kenney.nl/assets/ui-audio
+- License:
+  - Owlish Media pack page states free game use with attribution required.
+  - Kenney assets are CC0 1.0.
+
+## Additional World Render Variants
+
+- Files:
+  - `app/src/main/res/drawable-nodpi/world_variant_drone.png`
+  - `app/src/main/res/drawable-nodpi/world_variant_observer.png`
+  - `app/src/main/res/drawable-nodpi/world_variant_sentinel.png`
+  - `app/src/main/res/drawable-nodpi/world_variant_slug.png`
+  - `app/src/main/res/drawable-nodpi/world_variant_eagle.png`
+- Source: `Phantasy Mobs Pack 2` preview renders (same source as enemy pack)
+- Author: Luis Zuno (@ansimuz)
+- License note in pack: personal/commercial use allowed, credit appreciated.
 
 ## Notes
 

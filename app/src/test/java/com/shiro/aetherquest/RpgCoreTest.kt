@@ -18,6 +18,7 @@ class RpgCoreTest {
         val session = GameFactory.newSession(HeroClass.RANGER, DifficultyMode.EASY)
         session.player.coins = 500
         session.player.gems = 10
+        session.player.weaponCores = 3
         val upgraded = CampEngine.upgradeWeapon(session)
         assertTrue(upgraded)
         assertTrue(session.player.weaponTier >= 1)

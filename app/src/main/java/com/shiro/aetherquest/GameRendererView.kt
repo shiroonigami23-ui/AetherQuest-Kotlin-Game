@@ -76,6 +76,11 @@ class GameRendererView @JvmOverloads constructor(
     private val regionSanctum = BitmapFactory.decodeResource(resources, R.drawable.region_sunken_sanctum)
     private val regionAshen = BitmapFactory.decodeResource(resources, R.drawable.region_ashen_crown)
     private val regionSkyforge = BitmapFactory.decodeResource(resources, R.drawable.region_skyforge_citadel)
+    private val worldVariantDrone = BitmapFactory.decodeResource(resources, R.drawable.world_variant_drone)
+    private val worldVariantObserver = BitmapFactory.decodeResource(resources, R.drawable.world_variant_observer)
+    private val worldVariantSentinel = BitmapFactory.decodeResource(resources, R.drawable.world_variant_sentinel)
+    private val worldVariantSlug = BitmapFactory.decodeResource(resources, R.drawable.world_variant_slug)
+    private val worldVariantEagle = BitmapFactory.decodeResource(resources, R.drawable.world_variant_eagle)
     private val enemyDrone = BitmapFactory.decodeResource(resources, R.drawable.enemy_drone)
     private val enemySentinel = BitmapFactory.decodeResource(resources, R.drawable.enemy_sentinel)
     private val enemyObserver = BitmapFactory.decodeResource(resources, R.drawable.enemy_observer)
@@ -322,6 +327,12 @@ class GameRendererView @JvmOverloads constructor(
         val dst = RectF(0f, 0f, width.toFloat(), height.toFloat())
         shapePaint.alpha = 155
         canvas.drawBitmap(bitmap, src, dst, shapePaint)
+        val variant = currentWorldVariant(stage)
+        if (variant != null) {
+            val src2 = Rect(0, 0, variant.width, variant.height)
+            shapePaint.alpha = 48
+            canvas.drawBitmap(variant, src2, dst, shapePaint)
+        }
         shapePaint.alpha = 255
     }
 
@@ -483,6 +494,16 @@ class GameRendererView @JvmOverloads constructor(
             n.contains("acolyte") || n.contains("slug") -> bgSlug
             n.contains("titan") -> bgSentinel
             else -> null
+        }
+    }
+
+    private fun currentWorldVariant(stage: Int): Bitmap? {
+        return when (stage % 5) {
+            0 -> worldVariantDrone
+            1 -> worldVariantObserver
+            2 -> worldVariantSentinel
+            3 -> worldVariantSlug
+            else -> worldVariantEagle
         }
     }
 

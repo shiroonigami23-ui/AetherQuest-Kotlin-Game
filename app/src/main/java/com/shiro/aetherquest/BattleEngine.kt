@@ -384,18 +384,22 @@ object BattleEngine {
         when (rarity) {
             LootRarity.COMMON -> {
                 p.coins += 10
+                if (Random.nextFloat() > 0.7f) p.crystalShards += 1
                 session.lastLoot = "Loot: supply pouch (+10 coins)."
             }
             LootRarity.RARE -> {
                 p.gems += 1
                 p.coins += 18
-                session.lastLoot = "Loot: arcane gem (+1 gem)."
+                p.weaponCores += 1
+                session.lastLoot = "Loot: arcane gem (+1 gem) and weapon core."
             }
             LootRarity.EPIC -> {
                 p.gems += 2
                 p.potions += 1
                 p.coins += 35
-                session.lastLoot = "Loot: mythic cache (+2 gems, +1 potion)."
+                p.armorPlates += 1
+                p.crystalShards += 1
+                session.lastLoot = "Loot: mythic cache (+2 gems, +1 potion, +1 armor plate, +1 crystal)."
             }
         }
     }

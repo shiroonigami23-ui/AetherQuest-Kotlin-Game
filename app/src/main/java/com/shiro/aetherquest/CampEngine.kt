@@ -60,12 +60,13 @@ object CampEngine {
     fun upgradeWeapon(session: GameSession): Boolean {
         val p = session.player
         val cost = 70 + p.weaponTier * 45
-        if (p.coins < cost || p.gems < 1) {
-            session.lastLog = "Blacksmith Toren: \"Need $cost coins and 1 gem for this forge step.\""
+        if (p.coins < cost || p.gems < 1 || p.weaponCores < 1) {
+            session.lastLog = "Blacksmith Toren: \"Need $cost coins, 1 gem, and 1 weapon core for this forge step.\""
             return false
         }
         p.coins -= cost
         p.gems -= 1
+        p.weaponCores -= 1
         p.weaponTier += 1
         p.weaponMastery += 2
         p.weaponName = when {
@@ -83,12 +84,13 @@ object CampEngine {
     fun upgradeArmor(session: GameSession): Boolean {
         val p = session.player
         val cost = 65 + p.armorTier * 40
-        if (p.coins < cost || p.gems < 1) {
-            session.lastLog = "Armorer Brunn: \"Bring $cost coins and 1 gem for reinforced plating.\""
+        if (p.coins < cost || p.gems < 1 || p.armorPlates < 1) {
+            session.lastLog = "Armorer Brunn: \"Bring $cost coins, 1 gem, and 1 armor plate for reinforced plating.\""
             return false
         }
         p.coins -= cost
         p.gems -= 1
+        p.armorPlates -= 1
         p.armorTier += 1
         p.armorName = when {
             p.armorTier >= 8 -> "Aegis of Astral Dawn"
@@ -143,7 +145,9 @@ object CampEngine {
         p.gems += 1
         p.bombs += 1
         p.elixirs += 1
-        session.lastLog = "Treasure chest opened. Quartermaster cheers and logs new supplies."
+        p.crystalShards += 1
+        if (p.level % 2 == 0) p.weaponCores += 1 else p.armorPlates += 1
+        session.lastLog = "Treasure chest opened. Supplies gained: crystal shard + forge component."
         return true
     }
 
@@ -162,6 +166,7 @@ object CampEngine {
         p.coins += 55
         p.affinityMira += 1
         p.wisdomArc += 1
+        p.crystalShards += 1
         session.lastLog = "Secret shrine discovered. Mira smiles and shares old route maps."
         return true
     }

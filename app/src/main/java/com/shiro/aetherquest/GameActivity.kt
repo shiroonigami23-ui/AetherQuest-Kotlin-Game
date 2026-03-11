@@ -41,7 +41,10 @@ class GameActivity : AppCompatActivity() {
         binding.gameView.onPoiClaimed = { label, coins, relics ->
             session.player.coins += coins
             session.player.relicShards += relics
-            session.lastLog = "$label claimed: +$coins coins, +$relics relic shard(s)."
+            session.player.crystalShards += 1
+            if (session.player.level % 2 == 0) session.player.weaponCores += 1 else session.player.armorPlates += 1
+            GameAudio.playLoot()
+            session.lastLog = "$label claimed: +$coins coins, +$relics relic shard(s), +1 crystal, +1 forge component."
             render()
         }
     }
@@ -116,6 +119,7 @@ class GameActivity : AppCompatActivity() {
             GameAudio.playClick()
             if (!session.inBattle && !session.gameOver) {
                 CampEngine.restAtCamp(session)
+                GameAudio.playTavern()
                 render()
             }
         }
@@ -240,7 +244,7 @@ class GameActivity : AppCompatActivity() {
         val enemyIntentText = if (session.inBattle) " | Enemy Intent ${session.enemyIntent}" else ""
         binding.headerStats.text = "${p.heroName} (${p.heroClass})  ${session.difficultyMode}  Lv.${p.level}  Stage ${p.stage}  [$region]"
         binding.subStats.text = "HP ${p.hp}/${p.maxHp} | XP ${p.xp} | Coins ${p.coins} | Gems ${p.gems} | Potions ${p.potions} | Elixirs ${p.elixirs} | Bombs ${p.bombs} | ${p.weaponTrait} M${p.weaponMastery}$enemyIntentText"
-        binding.questText.text = "Chapter ${p.chapter} | Quest ${p.questKills}/${p.questTarget} | Completed ${p.questsCompleted} | Lives ${p.lives} | Keys ${p.keys} | Relics ${p.relicShards} | Secrets ${session.discoveredSecrets}\nObjective: $objective"
+        binding.questText.text = "Chapter ${p.chapter} | Quest ${p.questKills}/${p.questTarget} | Completed ${p.questsCompleted} | Lives ${p.lives} | Keys ${p.keys} | Relics ${p.relicShards} | Crystals ${p.crystalShards} | Cores ${p.weaponCores} | Plates ${p.armorPlates} | Secrets ${session.discoveredSecrets}\nObjective: $objective"
         binding.logText.text = if (session.gameOver) {
             "Ending: ${session.ending}\n${NarrativeEngine.endingText(session.ending, p)}"
         } else {
@@ -313,7 +317,20 @@ class GameActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         GameAudio.refreshSettings()
-        GameAudio.startBattleMusic(this)
+        when {
+            session.pendingStoryEvent.isNotBlank() -> {
+                GameAudio.stopAllNonMenuMusic()
+                GameAudio.startStoryMusic(this)
+            }
+            session.inBattle -> {
+                GameAudio.stopAllNonMenuMusic()
+                GameAudio.startBattleMusic(this)
+            }
+            else -> {
+                GameAudio.stopAllNonMenuMusic()
+                GameAudio.startExploreMusic(this)
+            }
+        }
     }
 
     override fun onStop() {
@@ -375,7 +392,11 @@ class GameActivity : AppCompatActivity() {
     private fun setupMoveButton(button: View, dx: Float, dy: Float) {
         button.setOnTouchListener { _, event ->
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> binding.gameView.setMoveDirection(dx, dy)
+                MotionEvent.ACTION_DOWN -> {
+                    GameAudio.playFootstep()
+                    binding.gameView.setMoveDirection(dx, dy)
+                }
+                MotionEvent.ACTION_MOVE -> binding.gameView.setMoveDirection(dx, dy)
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> binding.gameView.setMoveDirection(0f, 0f)
             }
             true
