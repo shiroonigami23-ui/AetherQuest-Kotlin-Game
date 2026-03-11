@@ -26,99 +26,96 @@ object GameAudio {
     fun init(context: Context) {
         appContext = context.applicationContext
         if (soundPool != null) return
-        val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        soundPool = SoundPool.Builder()
-            .setAudioAttributes(attrs)
-            .setMaxStreams(6)
-            .build()
-        sfxClick = soundPool!!.load(context, R.raw.sfx_ui_click, 1)
-        sfxHit = soundPool!!.load(context, R.raw.sfx_hit, 1)
-        sfxSuccess = soundPool!!.load(context, R.raw.sfx_ui_success, 1)
-        sfxSwitch = soundPool!!.load(context, R.raw.sfx_switch, 1)
-        sfxError = soundPool!!.load(context, R.raw.sfx_ui_error, 1)
-        sfxSpellDark = soundPool!!.load(context, R.raw.sfx_spell_dark, 1)
-        sfxSpellLight = soundPool!!.load(context, R.raw.sfx_spell_light, 1)
-        sfxFootstep = soundPool!!.load(context, R.raw.sfx_footstep, 1)
-        sfxLoot = soundPool!!.load(context, R.raw.sfx_loot, 1)
-        sfxTavern = soundPool!!.load(context, R.raw.sfx_tavern, 1)
+        val attrs = runCatching {
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+        }.getOrNull() ?: return
+        soundPool = runCatching {
+            SoundPool.Builder()
+                .setAudioAttributes(attrs)
+                .setMaxStreams(6)
+                .build()
+        }.getOrNull()
+        val sp = soundPool ?: return
+        sfxClick = safeLoadSfx(sp, context, R.raw.sfx_ui_click)
+        sfxHit = safeLoadSfx(sp, context, R.raw.sfx_hit)
+        sfxSuccess = safeLoadSfx(sp, context, R.raw.sfx_ui_success)
+        sfxSwitch = safeLoadSfx(sp, context, R.raw.sfx_switch)
+        sfxError = safeLoadSfx(sp, context, R.raw.sfx_ui_error)
+        sfxSpellDark = safeLoadSfx(sp, context, R.raw.sfx_spell_dark)
+        sfxSpellLight = safeLoadSfx(sp, context, R.raw.sfx_spell_light)
+        sfxFootstep = safeLoadSfx(sp, context, R.raw.sfx_footstep)
+        sfxLoot = safeLoadSfx(sp, context, R.raw.sfx_loot)
+        sfxTavern = safeLoadSfx(sp, context, R.raw.sfx_tavern)
     }
 
     fun refreshSettings() {
         val ctx = appContext ?: return
         val volume = SettingsManager.getMasterVolume(ctx)
-        menuMusic?.setVolume(volume * 0.45f, volume * 0.45f)
-        battleMusic?.setVolume(volume * 0.55f, volume * 0.55f)
-        exploreMusic?.setVolume(volume * 0.5f, volume * 0.5f)
-        storyMusic?.setVolume(volume * 0.5f, volume * 0.5f)
+        runCatching { menuMusic?.setVolume(volume * 0.45f, volume * 0.45f) }
+        runCatching { battleMusic?.setVolume(volume * 0.55f, volume * 0.55f) }
+        runCatching { exploreMusic?.setVolume(volume * 0.5f, volume * 0.5f) }
+        runCatching { storyMusic?.setVolume(volume * 0.5f, volume * 0.5f) }
     }
 
     fun startMenuMusic(context: Context) {
         if (menuMusic == null) {
-            menuMusic = MediaPlayer.create(context, R.raw.bgm_menu).apply {
-                isLooping = true
-            }
+            menuMusic = createLoopPlayer(context, R.raw.bgm_menu)
         }
         if (!SettingsManager.isMusicEnabled(context)) return
         refreshSettings()
-        if (menuMusic?.isPlaying != true) {
-            menuMusic?.start()
+        runCatching {
+            if (menuMusic?.isPlaying != true) menuMusic?.start()
         }
     }
 
     fun stopMenuMusic() {
-        menuMusic?.pause()
+        runCatching { menuMusic?.pause() }
     }
 
     fun startBattleMusic(context: Context) {
         if (battleMusic == null) {
-            battleMusic = MediaPlayer.create(context, R.raw.bgm_battle).apply {
-                isLooping = true
-            }
+            battleMusic = createLoopPlayer(context, R.raw.bgm_battle)
         }
         if (!SettingsManager.isMusicEnabled(context)) return
         refreshSettings()
-        if (battleMusic?.isPlaying != true) {
-            battleMusic?.start()
+        runCatching {
+            if (battleMusic?.isPlaying != true) battleMusic?.start()
         }
     }
 
     fun startExploreMusic(context: Context) {
         if (exploreMusic == null) {
-            exploreMusic = MediaPlayer.create(context, R.raw.bgm_explore).apply {
-                isLooping = true
-            }
+            exploreMusic = createLoopPlayer(context, R.raw.bgm_explore)
         }
         if (!SettingsManager.isMusicEnabled(context)) return
         refreshSettings()
-        if (exploreMusic?.isPlaying != true) {
-            exploreMusic?.start()
+        runCatching {
+            if (exploreMusic?.isPlaying != true) exploreMusic?.start()
         }
     }
 
     fun startStoryMusic(context: Context) {
         if (storyMusic == null) {
-            storyMusic = MediaPlayer.create(context, R.raw.bgm_story).apply {
-                isLooping = true
-            }
+            storyMusic = createLoopPlayer(context, R.raw.bgm_story)
         }
         if (!SettingsManager.isMusicEnabled(context)) return
         refreshSettings()
-        if (storyMusic?.isPlaying != true) {
-            storyMusic?.start()
+        runCatching {
+            if (storyMusic?.isPlaying != true) storyMusic?.start()
         }
     }
 
     fun stopAllNonMenuMusic() {
-        battleMusic?.pause()
-        exploreMusic?.pause()
-        storyMusic?.pause()
+        runCatching { battleMusic?.pause() }
+        runCatching { exploreMusic?.pause() }
+        runCatching { storyMusic?.pause() }
     }
 
     fun stopBattleMusic() {
-        battleMusic?.pause()
+        runCatching { battleMusic?.pause() }
     }
 
     fun playClick() = playSfx(sfxClick)
@@ -134,21 +131,38 @@ object GameAudio {
 
     private fun playSfx(id: Int) {
         val ctx = appContext ?: return
+        if (id <= 0) return
         if (!SettingsManager.isSfxEnabled(ctx)) return
         val volume = SettingsManager.getMasterVolume(ctx)
-        soundPool?.play(id, volume, volume, 1, 0, 1f)
+        runCatching { soundPool?.play(id, volume, volume, 1, 0, 1f) }
     }
 
     fun release() {
-        menuMusic?.release()
-        battleMusic?.release()
-        exploreMusic?.release()
-        storyMusic?.release()
+        runCatching { menuMusic?.release() }
+        runCatching { battleMusic?.release() }
+        runCatching { exploreMusic?.release() }
+        runCatching { storyMusic?.release() }
         menuMusic = null
         battleMusic = null
         exploreMusic = null
         storyMusic = null
-        soundPool?.release()
+        runCatching { soundPool?.release() }
         soundPool = null
+    }
+
+    private fun createLoopPlayer(context: Context, resId: Int): MediaPlayer? {
+        val player = runCatching { MediaPlayer.create(context, resId) }.getOrNull() ?: return null
+        runCatching {
+            player.isLooping = true
+            player.setOnErrorListener { mp, _, _ ->
+                runCatching { mp.reset() }
+                true
+            }
+        }
+        return player
+    }
+
+    private fun safeLoadSfx(pool: SoundPool, context: Context, resId: Int): Int {
+        return runCatching { pool.load(context, resId, 1) }.getOrDefault(0)
     }
 }

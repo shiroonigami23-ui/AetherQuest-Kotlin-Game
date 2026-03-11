@@ -22,12 +22,18 @@ class GameActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        session = SaveManager.load(this) ?: GameFactory.newSession(HeroClass.KNIGHT, DifficultyMode.EASY)
-        NarrativeEngine.maybeTriggerStory(session)
-        setupRendererCallbacks()
-        setupClicks()
-        render()
+        session = runCatching { SaveManager.load(this) }.getOrNull()
+            ?: GameFactory.newSession(HeroClass.KNIGHT, DifficultyMode.EASY)
+        runCatching {
+            NarrativeEngine.maybeTriggerStory(session)
+            setupRendererCallbacks()
+            setupClicks()
+            render()
+        }.onFailure {
+            session = GameFactory.newSession(HeroClass.KNIGHT, DifficultyMode.EASY)
+            session.lastLog = "Recovered from startup error. A safe session was created."
+            runCatching { render() }
+        }
     }
 
     private fun setupRendererCallbacks() {
@@ -243,6 +249,19 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun render() {
+        runCatching {
+            renderUnsafe()
+        }.onFailure {
+            binding.logText.text = "Runtime recovery: rendering fallback enabled. Use Save & Exit, then reopen."
+            binding.storyChoiceRow.visibility = View.GONE
+            binding.combatControlsRow.visibility = View.GONE
+            binding.exploreControlsRow.visibility = View.GONE
+            binding.campControlsRow1.visibility = View.GONE
+            binding.campControlsRow2.visibility = View.GONE
+        }
+    }
+
+    private fun renderUnsafe() {
         val p = session.player
         val region = NarrativeEngine.regionName(p.stage)
         val objective = NarrativeEngine.stageObjective(p.stage)
