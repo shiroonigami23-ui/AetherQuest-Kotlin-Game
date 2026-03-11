@@ -35,6 +35,9 @@ class GameRendererView @JvmOverloads constructor(
 
     var onEncounterRequested: ((String) -> Unit)? = null
     var onPoiClaimed: ((String, Int, Int) -> Unit)? = null
+    var onPotBroken: ((String) -> Unit)? = null
+
+    private enum class PoiType { LOOT, POT }
 
     private data class Roamer(
         var x: Float,
@@ -51,6 +54,7 @@ class GameRendererView @JvmOverloads constructor(
         val label: String,
         val coins: Int,
         val relics: Int,
+        val type: PoiType = PoiType.LOOT,
         var claimed: Boolean = false
     )
 
@@ -132,7 +136,12 @@ class GameRendererView @JvmOverloads constructor(
             return
         }
         nearest.claimed = true
-        onPoiClaimed?.invoke(nearest.label, nearest.coins, nearest.relics)
+        if (nearest.type == PoiType.POT) {
+            val outcome = applyPotLoot(s)
+            onPotBroken?.invoke(outcome)
+        } else {
+            onPoiClaimed?.invoke(nearest.label, nearest.coins, nearest.relics)
+        }
         invalidate()
     }
 
@@ -218,8 +227,15 @@ class GameRendererView @JvmOverloads constructor(
             val sx = poi.x - camX
             val sy = poi.y - camY
             shapePaint.style = Paint.Style.FILL
-            shapePaint.color = if (poi.relics > 0) Color.parseColor("#A855F7") else Color.parseColor("#10B981")
-            canvas.drawCircle(sx, sy, 22f, shapePaint)
+            if (poi.type == PoiType.POT) {
+                shapePaint.color = Color.parseColor("#B45309")
+                canvas.drawRoundRect(RectF(sx - 14f, sy - 18f, sx + 14f, sy + 20f), 8f, 8f, shapePaint)
+                shapePaint.color = Color.parseColor("#F59E0B")
+                canvas.drawCircle(sx, sy - 20f, 9f, shapePaint)
+            } else {
+                shapePaint.color = if (poi.relics > 0) Color.parseColor("#A855F7") else Color.parseColor("#10B981")
+                canvas.drawCircle(sx, sy, 22f, shapePaint)
+            }
             textPaint.textSize = 18f
             canvas.drawText(poi.label, sx + 28f, sy + 5f, textPaint)
         }
@@ -271,7 +287,9 @@ class GameRendererView @JvmOverloads constructor(
         textPaint.textSize = 24f
         canvas.drawText("Zone: ${NarrativeEngine.regionName(s.player.stage)} | Explore, collect POIs, avoid or engage roaming foes", 34f, 52f, textPaint)
         textPaint.textSize = 21f
-        canvas.drawText("POIs left: ${pois.count { !it.claimed }} | Roamers: ${roamers.size} | Cam: ${s.cameraMode} | Position: ${s.player.worldX.toInt()},${s.player.worldY.toInt()}", 34f, 88f, textPaint)
+        val lootPoiLeft = pois.count { !it.claimed && it.type == PoiType.LOOT }
+        val potsLeft = pois.count { !it.claimed && it.type == PoiType.POT }
+        canvas.drawText("POIs left: $lootPoiLeft | Pots: $potsLeft | Roamers: ${roamers.size} | Cam: ${s.cameraMode} | Position: ${s.player.worldX.toInt()},${s.player.worldY.toInt()}", 34f, 88f, textPaint)
 
         val miniW = 220f
         val miniH = 140f
@@ -442,12 +460,22 @@ class GameRendererView @JvmOverloads constructor(
             )
         }
         pois = mutableListOf(
-            Poi(360f, 320f, "Camp Cache", 90, 0),
-            Poi(worldWidth - 450f, 360f, "Sky Relic", 35, 1),
-            Poi(620f, worldHeight - 380f, "Forgotten Shrine", 45, 1),
-            Poi(worldWidth - 720f, worldHeight - 440f, "Bandit Chest", 120, 0),
-            Poi(worldWidth * 0.5f, worldHeight * 0.25f, "Lore Obelisk", 60, 0)
+            Poi(360f, 320f, "Camp Cache", 90, 0, PoiType.LOOT),
+            Poi(worldWidth - 450f, 360f, "Sky Relic", 35, 1, PoiType.LOOT),
+            Poi(620f, worldHeight - 380f, "Forgotten Shrine", 45, 1, PoiType.LOOT),
+            Poi(worldWidth - 720f, worldHeight - 440f, "Bandit Chest", 120, 0, PoiType.LOOT),
+            Poi(worldWidth * 0.5f, worldHeight * 0.25f, "Lore Obelisk", 60, 0, PoiType.LOOT)
         )
+        repeat(8) { idx ->
+            pois += Poi(
+                x = 160f + r.nextFloat() * (worldWidth - 320f),
+                y = 180f + r.nextFloat() * (worldHeight - 360f),
+                label = "Breakable Pot ${idx + 1}",
+                coins = 0,
+                relics = 0,
+                type = PoiType.POT
+            )
+        }
         particles = mutableListOf()
         repeat(90) {
             particles += Particle(
@@ -510,4 +538,57 @@ class GameRendererView @JvmOverloads constructor(
     private fun clamp(v: Float, lo: Float, hi: Float): Float = min(hi, max(lo, v))
 
     private fun distance(ax: Float, ay: Float, bx: Float, by: Float): Float = hypot(ax - bx, ay - by)
+
+    private fun applyPotLoot(s: GameSession): String {
+        val p = s.player
+        val stageBoost = (p.stage / 3).coerceAtLeast(0)
+        val roll = Random.nextInt(100)
+        return when {
+            roll < 38 -> {
+                val coins = 12 + Random.nextInt(10, 36) + stageBoost * 2
+                p.coins += coins
+                "Pot shattered: +$coins coins."
+            }
+            roll < 63 -> {
+                p.potions += 1
+                "Pot shattered: +1 potion."
+            }
+            roll < 76 -> {
+                p.elixirs += 1
+                "Pot shattered: +1 elixir."
+            }
+            roll < 84 -> {
+                p.bombs += 1
+                "Pot shattered: +1 bomb."
+            }
+            roll < 90 -> {
+                p.crystalShards += 1
+                "Pot shattered: +1 crystal shard."
+            }
+            roll < 94 -> {
+                p.weaponCores += 1
+                "Pot shattered: +1 weapon core."
+            }
+            roll < 97 -> {
+                p.armorPlates += 1
+                "Pot shattered: +1 armor plate."
+            }
+            else -> {
+                when (Random.nextInt(3)) {
+                    0 -> {
+                        s.furyBuffTurns = max(s.furyBuffTurns, 3)
+                        "Pot shattered: Fury Brew buff active (3 turns, +attack)."
+                    }
+                    1 -> {
+                        s.stoneSkinBuffTurns = max(s.stoneSkinBuffTurns, 3)
+                        "Pot shattered: Stone Skin buff active (3 turns, +defense)."
+                    }
+                    else -> {
+                        s.fortuneBuffTurns = max(s.fortuneBuffTurns, 3)
+                        "Pot shattered: Fortune buff active (3 turns, +loot)."
+                    }
+                }
+            }
+        }
+    }
 }

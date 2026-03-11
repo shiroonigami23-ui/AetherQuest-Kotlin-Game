@@ -50,7 +50,7 @@ object BattleEngine {
     fun playerAttack(session: GameSession) {
         val enemy = session.enemy ?: return
         val p = session.player
-        val base = effectiveAttack(p) + Random.nextInt(0, 8)
+        val base = effectiveAttack(session) + Random.nextInt(0, 8)
         val defenseCut = effectiveEnemyDefense(enemy, p.weaponTrait)
         val critChance = p.critChance + critTraitBonus(p.weaponTrait) + session.comboCount * 0.01f
         val crit = Random.nextFloat() <= critChance
@@ -77,9 +77,9 @@ object BattleEngine {
         }
         p.skillCharges -= 1
         val base = when (p.heroClass) {
-            HeroClass.KNIGHT -> effectiveAttack(p) + 22 + p.armorTier
-            HeroClass.RANGER -> effectiveAttack(p) + 18 + p.weaponMastery / 2
-            HeroClass.MYSTIC -> effectiveAttack(p) + 25 + p.level / 2
+            HeroClass.KNIGHT -> effectiveAttack(session) + 22 + p.armorTier
+            HeroClass.RANGER -> effectiveAttack(session) + 18 + p.weaponMastery / 2
+            HeroClass.MYSTIC -> effectiveAttack(session) + 25 + p.level / 2
         }
         var damage = max(1, base + Random.nextInt(4, 14) - (effectiveEnemyDefense(enemy, p.weaponTrait) / 2))
         if (p.weaponTrait == WeaponTrait.ARCANE) damage += 4 + p.level / 3
@@ -193,6 +193,7 @@ object BattleEngine {
             return
         }
         session.enemyIntent = chooseEnemyIntent(session, enemy)
+        tickBuffTurns(session, turnLog)
         session.lastLog += " ${turnLog.joinToString(" ")} Next intent: ${session.enemyIntent}."
     }
 
@@ -281,7 +282,14 @@ object BattleEngine {
         return p.attack + p.weaponTier * 3 + p.weaponMastery / 4 + traitBonus
     }
 
-    private fun effectiveDefense(p: PlayerProfile): Int = p.defense + p.armorTier * 3
+    private fun effectiveDefense(session: GameSession): Int {
+        val p = session.player
+        var defense = p.defense + p.armorTier * 3
+        if (session.stoneSkinBuffTurns > 0) {
+            defense += max(2, (defense * 0.35f).toInt())
+        }
+        return defense
+    }
 
     private fun effectiveEnemyDefense(enemy: Enemy, trait: WeaponTrait): Int {
         val base = enemy.defense
@@ -333,13 +341,37 @@ object BattleEngine {
 
     private fun applyEnemyHit(session: GameSession, raw: Int): Int {
         val p = session.player
-        var damage = max(1, raw - effectiveDefense(p) / 2)
+        var damage = max(1, raw - effectiveDefense(session) / 2)
         if (session.shieldTurns > 0) {
             damage = (damage * 0.45f).toInt().coerceAtLeast(1)
             session.shieldTurns = 0
         }
         p.hp = max(0, p.hp - damage)
         return damage
+    }
+
+    private fun effectiveAttack(session: GameSession): Int {
+        val p = session.player
+        var attack = effectiveAttack(p)
+        if (session.furyBuffTurns > 0) {
+            attack += max(3, (attack * 0.28f).toInt())
+        }
+        return attack
+    }
+
+    private fun tickBuffTurns(session: GameSession, turnLog: MutableList<String>) {
+        if (session.furyBuffTurns > 0) {
+            session.furyBuffTurns -= 1
+            if (session.furyBuffTurns == 0) turnLog += "Fury Brew fades."
+        }
+        if (session.stoneSkinBuffTurns > 0) {
+            session.stoneSkinBuffTurns -= 1
+            if (session.stoneSkinBuffTurns == 0) turnLog += "Stone Skin fades."
+        }
+        if (session.fortuneBuffTurns > 0) {
+            session.fortuneBuffTurns -= 1
+            if (session.fortuneBuffTurns == 0) turnLog += "Fortune fades."
+        }
     }
 
     private fun chooseEnemyIntent(session: GameSession, enemy: Enemy): EnemyIntent {
@@ -375,32 +407,41 @@ object BattleEngine {
 
     private fun applyLoot(session: GameSession, boss: Boolean) {
         val p = session.player
+        val fortuneActive = session.fortuneBuffTurns > 0
         val roll = Random.nextFloat()
         val rarity = when {
-            roll > 0.96f || boss -> LootRarity.EPIC
-            roll > 0.78f -> LootRarity.RARE
+            roll > (if (fortuneActive) 0.92f else 0.96f) || boss -> LootRarity.EPIC
+            roll > (if (fortuneActive) 0.68f else 0.78f) -> LootRarity.RARE
             else -> LootRarity.COMMON
         }
         when (rarity) {
             LootRarity.COMMON -> {
-                p.coins += 10
+                val coins = if (fortuneActive) 16 else 10
+                p.coins += coins
                 if (Random.nextFloat() > 0.7f) p.crystalShards += 1
-                session.lastLoot = "Loot: supply pouch (+10 coins)."
+                session.lastLoot = "Loot: supply pouch (+$coins coins)."
             }
             LootRarity.RARE -> {
-                p.gems += 1
-                p.coins += 18
+                val gems = if (fortuneActive) 2 else 1
+                val coins = if (fortuneActive) 26 else 18
+                p.gems += gems
+                p.coins += coins
                 p.weaponCores += 1
-                session.lastLoot = "Loot: arcane gem (+1 gem) and weapon core."
+                session.lastLoot = "Loot: arcane gem (+$gems gem) and weapon core (+$coins coins)."
             }
             LootRarity.EPIC -> {
-                p.gems += 2
+                val gems = if (fortuneActive) 3 else 2
+                val coins = if (fortuneActive) 50 else 35
+                p.gems += gems
                 p.potions += 1
-                p.coins += 35
+                p.coins += coins
                 p.armorPlates += 1
                 p.crystalShards += 1
-                session.lastLoot = "Loot: mythic cache (+2 gems, +1 potion, +1 armor plate, +1 crystal)."
+                session.lastLoot = "Loot: mythic cache (+$gems gems, +1 potion, +1 armor plate, +1 crystal, +$coins coins)."
             }
+        }
+        if (fortuneActive) {
+            session.lastLoot += " Fortune buff boosted rewards."
         }
     }
 

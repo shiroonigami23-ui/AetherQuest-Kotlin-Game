@@ -93,6 +93,9 @@ data class GameSession(
     var enemyShieldTurns: Int = 0,
     var enemyChargeTurns: Int = 0,
     var playerBleedTurns: Int = 0,
+    var furyBuffTurns: Int = 0,
+    var stoneSkinBuffTurns: Int = 0,
+    var fortuneBuffTurns: Int = 0,
     var comboCount: Int = 0,
     var turnCounter: Int = 0,
     var cameraMode: CameraMode = CameraMode.THIRD_PERSON

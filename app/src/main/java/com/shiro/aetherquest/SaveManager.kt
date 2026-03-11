@@ -83,6 +83,9 @@ object SaveManager {
             put("enemyShieldTurns", session.enemyShieldTurns)
             put("enemyChargeTurns", session.enemyChargeTurns)
             put("playerBleedTurns", session.playerBleedTurns)
+            put("furyBuffTurns", session.furyBuffTurns)
+            put("stoneSkinBuffTurns", session.stoneSkinBuffTurns)
+            put("fortuneBuffTurns", session.fortuneBuffTurns)
             put("comboCount", session.comboCount)
             put("turnCounter", session.turnCounter)
             put("cameraMode", session.cameraMode.name)
@@ -173,6 +176,9 @@ object SaveManager {
                 enemyShieldTurns = o.optInt("enemyShieldTurns", 0),
                 enemyChargeTurns = o.optInt("enemyChargeTurns", 0),
                 playerBleedTurns = o.optInt("playerBleedTurns", 0),
+                furyBuffTurns = o.optInt("furyBuffTurns", 0),
+                stoneSkinBuffTurns = o.optInt("stoneSkinBuffTurns", 0),
+                fortuneBuffTurns = o.optInt("fortuneBuffTurns", 0),
                 comboCount = o.optInt("comboCount", 0),
                 turnCounter = o.optInt("turnCounter", 0),
                 cameraMode = parseCameraMode(o.optString("cameraMode", CameraMode.THIRD_PERSON.name))

@@ -47,6 +47,11 @@ class GameActivity : AppCompatActivity() {
             session.lastLog = "$label claimed: +$coins coins, +$relics relic shard(s), +1 crystal, +1 forge component."
             render()
         }
+        binding.gameView.onPotBroken = { log ->
+            GameAudio.playLoot()
+            session.lastLog = log
+            render()
+        }
     }
 
     private fun setupClicks() {
@@ -242,7 +247,12 @@ class GameActivity : AppCompatActivity() {
         val region = NarrativeEngine.regionName(p.stage)
         val objective = NarrativeEngine.stageObjective(p.stage)
         val enemyIntentText = if (session.inBattle) " | Enemy Intent ${session.enemyIntent}" else ""
-        binding.headerStats.text = "${p.heroName} (${p.heroClass})  ${session.difficultyMode}  Lv.${p.level}  Stage ${p.stage}  [$region]"
+        val buffs = buildList {
+            if (session.furyBuffTurns > 0) add("Fury:${session.furyBuffTurns}")
+            if (session.stoneSkinBuffTurns > 0) add("Stone:${session.stoneSkinBuffTurns}")
+            if (session.fortuneBuffTurns > 0) add("Fortune:${session.fortuneBuffTurns}")
+        }.joinToString(" ")
+        binding.headerStats.text = "${p.heroName} (${p.heroClass})  ${session.difficultyMode}  Lv.${p.level}  Stage ${p.stage}  [$region]${if (buffs.isNotBlank()) "  Buffs: $buffs" else ""}"
         binding.subStats.text = "HP ${p.hp}/${p.maxHp} | XP ${p.xp} | Coins ${p.coins} | Gems ${p.gems} | Potions ${p.potions} | Elixirs ${p.elixirs} | Bombs ${p.bombs} | ${p.weaponTrait} M${p.weaponMastery}$enemyIntentText"
         binding.questText.text = "Chapter ${p.chapter} | Quest ${p.questKills}/${p.questTarget} | Completed ${p.questsCompleted} | Lives ${p.lives} | Keys ${p.keys} | Relics ${p.relicShards} | Crystals ${p.crystalShards} | Cores ${p.weaponCores} | Plates ${p.armorPlates} | Secrets ${session.discoveredSecrets}\nObjective: $objective"
         binding.logText.text = if (session.gameOver) {
