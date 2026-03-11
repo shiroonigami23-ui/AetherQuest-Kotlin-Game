@@ -5,9 +5,18 @@ import org.json.JSONObject
 
 object SaveManager {
     private const val PREFS = "aetherquest_prefs"
-    private const val KEY = "save_slot"
+    private const val LEGACY_KEY = "save_slot"
+    private const val ACTIVE_SLOT_KEY = "active_slot"
+    private const val SLOT_PREFIX = "save_slot_"
+    private const val MIN_SLOT = 1
+    private const val MAX_SLOT = 3
 
     fun save(context: Context, session: GameSession) {
+        saveToSlot(context, getActiveSlot(context), session)
+    }
+
+    fun saveToSlot(context: Context, slot: Int, session: GameSession) {
+        val normalizedSlot = normalizeSlot(slot)
         val p = session.player
         val obj = JSONObject().apply {
             put("heroClass", p.heroClass.name)
@@ -77,12 +86,20 @@ object SaveManager {
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
-            .putString(KEY, obj.toString())
+            .putString(slotKey(normalizedSlot), obj.toString())
             .apply()
     }
 
     fun load(context: Context): GameSession? {
-        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null) ?: return null
+        return loadFromSlot(context, getActiveSlot(context))
+    }
+
+    fun loadFromSlot(context: Context, slot: Int): GameSession? {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val normalizedSlot = normalizeSlot(slot)
+        val raw = prefs.getString(slotKey(normalizedSlot), null)
+            ?: migrateLegacySave(prefs, normalizedSlot)
+            ?: return null
         return try {
             val o = JSONObject(raw)
             val profile = PlayerProfile(
@@ -159,6 +176,31 @@ object SaveManager {
         }
     }
 
+    fun getActiveSlot(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return normalizeSlot(prefs.getInt(ACTIVE_SLOT_KEY, MIN_SLOT))
+    }
+
+    fun setActiveSlot(context: Context, slot: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(ACTIVE_SLOT_KEY, normalizeSlot(slot))
+            .apply()
+    }
+
+    fun hasSaveInSlot(context: Context, slot: Int): Boolean {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val normalized = normalizeSlot(slot)
+        return prefs.contains(slotKey(normalized)) || (normalized == MIN_SLOT && prefs.contains(LEGACY_KEY))
+    }
+
+    fun deleteSlot(context: Context, slot: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .remove(slotKey(normalizeSlot(slot)))
+            .apply()
+    }
+
     private fun parseDifficultyMode(name: String): DifficultyMode {
         return runCatching { DifficultyMode.valueOf(name) }.getOrDefault(DifficultyMode.EASY)
     }
@@ -182,4 +224,21 @@ object SaveManager {
     private fun parseCameraMode(name: String): CameraMode {
         return runCatching { CameraMode.valueOf(name) }.getOrDefault(CameraMode.THIRD_PERSON)
     }
+
+    private fun migrateLegacySave(
+        prefs: android.content.SharedPreferences,
+        normalizedSlot: Int
+    ): String? {
+        if (normalizedSlot != MIN_SLOT) return null
+        val legacy = prefs.getString(LEGACY_KEY, null) ?: return null
+        prefs.edit()
+            .putString(slotKey(MIN_SLOT), legacy)
+            .remove(LEGACY_KEY)
+            .apply()
+        return legacy
+    }
+
+    private fun slotKey(slot: Int): String = "$SLOT_PREFIX$slot"
+
+    private fun normalizeSlot(slot: Int): Int = slot.coerceIn(MIN_SLOT, MAX_SLOT)
 }
