@@ -1,68 +1,111 @@
-# AetherQuest (Kotlin Android RPG)
+# AetherQuest
 
-A production-oriented Kotlin Android fantasy RPG prototype designed for Play Store evolution.
+<p align="center">
+  <img src="https://img.shields.io/badge/Kotlin-Android-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin Android"/>
+  <img src="https://img.shields.io/badge/Engine-Custom%20Canvas-0EA5E9?style=for-the-badge" alt="Canvas Engine"/>
+  <img src="https://img.shields.io/badge/Genre-Turn--Based%20RPG-10B981?style=for-the-badge" alt="RPG"/>
+  <img src="https://img.shields.io/github/license/shiroonigami23-ui/AetherQuest-Kotlin-Game?style=for-the-badge" alt="License"/>
+  <img src="https://img.shields.io/github/stars/shiroonigami23-ui/AetherQuest-Kotlin-Game?style=for-the-badge" alt="Stars"/>
+  <img src="https://img.shields.io/github/last-commit/shiroonigami23-ui/AetherQuest-Kotlin-Game?style=for-the-badge" alt="Last Commit"/>
+</p>
 
-## Gameplay
+Production-ready Kotlin RPG foundation focused on Android APK delivery, story depth, progression systems, and Play Store scale-up.
 
-- Class-based heroes: Knight, Ranger, Mystic
-- Stage progression and boss encounters every 5 stages
-- Turn-based combat actions: Attack, Skill, Heal, Defend
-- XP, level-ups, coins, potion economy
-- Camp systems: rest, potion shop, weapon/armor forging
-- Quest tracker + loot rarity drops
-- Story chapters with branching choices
-- World-region progression map
-- Romance/loyalty paths (Nyra vs Crown)
-- Multiple endings: Romantic, Heroic, Ruthless, Tragic
-- Death/lives system with true game-over ending
-- Save/continue progression (SharedPreferences)
-- Settings menu: music/SFX toggles + master volume
-- In-app legal/privacy/about screen
-- Custom rendered battle + world map scene (Canvas)
-- Real external assets integrated: enemy sprites, BGM, UI/combat SFX
+## Table of Contents
+- [Highlights](#highlights)
+- [Core Systems](#core-systems)
+- [Project Structure](#project-structure)
+- [Run Locally](#run-locally)
+- [Build APK](#build-apk)
+- [Assets and Licensing](#assets-and-licensing)
+- [KMP and iOS Scaffold](#kmp-and-ios-scaffold)
+- [Play Store Operations](#play-store-operations)
+- [Roadmap](#roadmap)
 
-## Assets
+## Highlights
+- 3 hero classes: `Knight`, `Ranger`, `Mystic`
+- Difficulty modes: `Story`, `Easy`, `Hard`, `Extreme (1 life)`
+- Turn-based combat with skills, defend, heal, and bomb usage
+- Camp economy and progression:
+  - Potions, elixirs, bombs, chest unlocks, accessory crafting
+  - Weapon and armor tiering with named equipment upgrades
+- Story arcs with multi-route romance design:
+  - 5 romanceable characters (Nyra, Lyra, Sera, Mira, Kaela)
+  - Branches for single, throuple, harem, or solo outcomes
+- Multiple ending types:
+  - Heroic, Ruthless, Romantic, Throuple, Harem, Lone Wolf, Tragic
+- Region progression map and boss pacing
+- Persistent save/continue state via `SharedPreferences`
+- Settings, legal/about screens, and external licensed assets integrated
 
-- External sprite sheet: `app/src/main/res/drawable-nodpi/hero_sheet.png`
-- Enemy sprite pack: `app/src/main/res/drawable-nodpi/enemy_*.png`
-- World backgrounds: `app/src/main/res/drawable-nodpi/region_*.png`
-- BGM: `app/src/main/res/raw/bgm_menu.ogg`, `bgm_battle.ogg`
-- SFX: `app/src/main/res/raw/sfx_*.wav`
-- Source + license details: `ASSET_ATTRIBUTION.md`
+## Core Systems
 
-## KMP + iOS Scaffold
+| Area | What it Handles |
+|---|---|
+| Combat Engine | Enemy scaling, class skills, win/lose state, timed events |
+| Narrative Engine | Story triggers, branching choices, relationship routes, endings |
+| Camp Engine | Economy loop, upgrades, utility items, secrets, chest system |
+| Save Manager | Full session serialization and backward-compatible loading |
+| Renderer | Custom battle + map rendering with external region/sprite assets |
 
-- KMP shared core scaffold: `kmp-shared/`
-- iOS app scaffold: `iosApp/`
-- macOS scaffold CI: `.github/workflows/ios-scaffold-macos.yml`
+## Project Structure
+```text
+app/
+  src/main/java/com/shiro/aetherquest/
+    BattleEngine.kt
+    NarrativeEngine.kt
+    CampEngine.kt
+    SaveManager.kt
+    GameRendererView.kt
+  src/main/res/
+    drawable-nodpi/   # sprite and region packs
+    raw/              # bgm/sfx
+docs/playstore/       # store listing + release docs
+kmp-shared/           # KMP shared core scaffold
+iosApp/               # iOS scaffold
+```
 
-## Play Store Release Ops
+## Run Locally
+```bash
+git clone https://github.com/shiroonigami23-ui/AetherQuest-Kotlin-Game.git
+cd AetherQuest-Kotlin-Game
+./gradlew clean assembleDebug
+```
 
-- Listing draft + rating + permissions + signing docs:
-  - `docs/playstore/store-listing-draft.md`
-  - `docs/playstore/content-rating-notes.md`
-  - `docs/playstore/permissions-review.md`
-  - `docs/playstore/release-signing-pipeline.md`
-- Signed release CI template: `.github/workflows/android-release-signed.yml`
-
-## Build
-
+## Build APK
 ```bash
 ./gradlew assembleDebug assembleRelease
 ```
 
-## APK
-
+Generated outputs:
 - `app/build/outputs/apk/debug/app-debug.apk`
-- `app/build/outputs/apk/release/app-release-unsigned.apk`
+- `app/build/outputs/apk/release/app-release.apk`
 
-## Next Steps for Play Store
+## Assets and Licensing
+- Hero sprite: `app/src/main/res/drawable-nodpi/hero_sheet.png`
+- Enemy sprites: `app/src/main/res/drawable-nodpi/enemy_*.png`
+- Region backgrounds: `app/src/main/res/drawable-nodpi/region_*.png`
+- Audio: `app/src/main/res/raw/`
+- Attribution and third-party license details: [`ASSET_ATTRIBUTION.md`](ASSET_ATTRIBUTION.md)
 
-- Replace placeholder-rendered visuals with expanded licensed art/audio packs
-- Add accessibility, privacy policy, analytics, and crash reporting
-- Add balancing pass + QA test matrix + signed release pipeline
+## KMP and iOS Scaffold
+- Shared Kotlin module scaffold: `kmp-shared/`
+- iOS app scaffold: `iosApp/`
+- macOS iOS scaffold workflow: `.github/workflows/ios-scaffold-macos.yml`
 
-## iOS Note
+Note: iOS `.ipa` packaging/signing requires macOS + Xcode.
 
-- Kotlin logic can be shared via KMP, but `.ipa` builds require macOS + Xcode.
-- This repo currently builds Android APK on Windows.
+## Play Store Operations
+- Store and compliance docs:
+  - `docs/playstore/store-listing-draft.md`
+  - `docs/playstore/content-rating-notes.md`
+  - `docs/playstore/permissions-review.md`
+  - `docs/playstore/release-signing-pipeline.md`
+- Android signed-release workflow template:
+  - `.github/workflows/android-release-signed.yml`
+
+## Roadmap
+- Add larger licensed asset packs (characters, environments, VFX, SFX/BGM)
+- Quest journal, codex, and achievement systems
+- Deeper balancing pass and boss mechanics
+- Play Store production hardening (ANR/crash analytics, QA matrix, telemetry, accessibility)

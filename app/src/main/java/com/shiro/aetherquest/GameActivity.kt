@@ -2,6 +2,9 @@ package com.shiro.aetherquest
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +14,9 @@ class GameActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGameBinding
     private lateinit var session: GameSession
     private var lastPromptVisible = false
+    private var lastTypedLog = ""
+    private val typewriterHandler = Handler(Looper.getMainLooper())
+    private var typewriterRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,8 +25,25 @@ class GameActivity : AppCompatActivity() {
 
         session = SaveManager.load(this) ?: GameFactory.newSession(HeroClass.KNIGHT, DifficultyMode.EASY)
         NarrativeEngine.maybeTriggerStory(session)
+        setupRendererCallbacks()
         setupClicks()
         render()
+    }
+
+    private fun setupRendererCallbacks() {
+        binding.gameView.onEncounterRequested = { name ->
+            if (!session.inBattle && !session.gameOver && session.pendingStoryEvent.isBlank()) {
+                session.lastLog = "Encountered $name in the wild."
+                BattleEngine.startBattle(session, name)
+                render()
+            }
+        }
+        binding.gameView.onPoiClaimed = { label, coins, relics ->
+            session.player.coins += coins
+            session.player.relicShards += relics
+            session.lastLog = "$label claimed: +$coins coins, +$relics relic shard(s)."
+            render()
+        }
     }
 
     private fun setupClicks() {
@@ -153,6 +176,24 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
+        setupMoveButton(binding.moveLeftBtn, -1f, 0f)
+        setupMoveButton(binding.moveRightBtn, 1f, 0f)
+        setupMoveButton(binding.moveUpBtn, 0f, -1f)
+        setupMoveButton(binding.moveDownBtn, 0f, 1f)
+
+        binding.interactBtn.setOnClickListener {
+            if (!session.inBattle && !session.gameOver) {
+                binding.gameView.interact()
+            }
+        }
+
+        binding.cameraModeBtn.setOnClickListener {
+            val mode = binding.gameView.cycleCameraMode()
+            session.cameraMode = mode
+            session.lastLog = "Camera switched to $mode."
+            render()
+        }
+
         binding.choiceABtn.setOnClickListener {
             if (session.pendingStoryEvent.isNotBlank() && !session.gameOver) {
                 GameAudio.playSuccess()
@@ -195,14 +236,17 @@ class GameActivity : AppCompatActivity() {
     private fun render() {
         val p = session.player
         val region = NarrativeEngine.regionName(p.stage)
-        binding.headerStats.text = "${p.heroClass}  ${session.difficultyMode}  Lv.${p.level}  Stage ${p.stage}  [$region]"
-        binding.subStats.text = "HP ${p.hp}/${p.maxHp} | XP ${p.xp} | Coins ${p.coins} | Gems ${p.gems} | Potions ${p.potions} | Elixirs ${p.elixirs} | Bombs ${p.bombs}"
-        binding.questText.text = "Chapter ${p.chapter} | Quest ${p.questKills}/${p.questTarget} | Completed ${p.questsCompleted} | Lives ${p.lives} | Keys ${p.keys} | Relics ${p.relicShards} | Secrets ${session.discoveredSecrets}"
+        val objective = NarrativeEngine.stageObjective(p.stage)
+        val enemyIntentText = if (session.inBattle) " | Enemy Intent ${session.enemyIntent}" else ""
+        binding.headerStats.text = "${p.heroName} (${p.heroClass})  ${session.difficultyMode}  Lv.${p.level}  Stage ${p.stage}  [$region]"
+        binding.subStats.text = "HP ${p.hp}/${p.maxHp} | XP ${p.xp} | Coins ${p.coins} | Gems ${p.gems} | Potions ${p.potions} | Elixirs ${p.elixirs} | Bombs ${p.bombs} | ${p.weaponTrait} M${p.weaponMastery}$enemyIntentText"
+        binding.questText.text = "Chapter ${p.chapter} | Quest ${p.questKills}/${p.questTarget} | Completed ${p.questsCompleted} | Lives ${p.lives} | Keys ${p.keys} | Relics ${p.relicShards} | Secrets ${session.discoveredSecrets}\nObjective: $objective"
         binding.logText.text = if (session.gameOver) {
             "Ending: ${session.ending}\n${NarrativeEngine.endingText(session.ending, p)}"
         } else {
             session.lastLog
         }
+        applyTypewriter(binding.logText.text.toString())
         binding.romanceInfoText.text = companionStatus(p)
         binding.romancePortrait.setImageResource(companionPortraitRes(p))
         binding.gameView.session = session
@@ -219,6 +263,7 @@ class GameActivity : AppCompatActivity() {
 
         val inBattle = session.inBattle
         val locked = session.gameOver || session.pendingStoryEvent.isNotBlank()
+        val inStory = session.pendingStoryEvent.isNotBlank() && !session.gameOver
         binding.attackBtn.isEnabled = inBattle && !session.gameOver
         binding.skillBtn.isEnabled = inBattle && !session.gameOver
         binding.healBtn.isEnabled = inBattle && !session.gameOver
@@ -235,6 +280,23 @@ class GameActivity : AppCompatActivity() {
         binding.craftAccessoryBtn.isEnabled = !inBattle && !locked
         binding.choiceABtn.isEnabled = session.pendingStoryEvent.isNotBlank() && !session.gameOver
         binding.choiceBBtn.isEnabled = session.pendingStoryEvent.isNotBlank() && !session.gameOver
+        val canMove = !session.inBattle && !locked
+        binding.moveLeftBtn.isEnabled = canMove
+        binding.moveRightBtn.isEnabled = canMove
+        binding.moveUpBtn.isEnabled = canMove
+        binding.moveDownBtn.isEnabled = canMove
+        binding.interactBtn.isEnabled = canMove
+        binding.cameraModeBtn.isEnabled = canMove
+        binding.cameraModeBtn.text = when (session.cameraMode) {
+            CameraMode.TOP_DOWN -> "Top"
+            CameraMode.THIRD_PERSON -> "3rd"
+            CameraMode.FIRST_PERSON -> "1st"
+        }
+        binding.combatControlsRow.visibility = if (inBattle) View.VISIBLE else View.GONE
+        binding.exploreControlsRow.visibility = if (!inBattle && !inStory && !session.gameOver) View.VISIBLE else View.GONE
+        val showCamp = !inBattle && !inStory && !session.gameOver
+        binding.campControlsRow1.visibility = if (showCamp) View.VISIBLE else View.GONE
+        binding.campControlsRow2.visibility = if (showCamp) View.VISIBLE else View.GONE
         animatePortraitPulse()
     }
 
@@ -256,6 +318,7 @@ class GameActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        stopTypewriter()
         GameAudio.stopBattleMusic()
     }
 
@@ -289,8 +352,10 @@ class GameActivity : AppCompatActivity() {
             RelationshipStyle.SINGLE -> "Single route"
             else -> "Undecided"
         }
-        val lead = names.firstOrNull() ?: "No companion bonded yet"
-        return "Companion: $lead | Route: $route | Arc(S/W/E): ${p.strengthArc}/${p.wisdomArc}/${p.empathyArc}\nGear: ${p.weaponName}, ${p.armorName}, ${p.accessoryName}"
+        val lead = names.firstOrNull()
+        val affection = lead?.let { DialogueEngine.romanceDevotionLine(it) } ?: "The camp still whispers about the commander called ${p.heroName}."
+        val politics = if (p.stage >= 12) " ${DialogueEngine.courtPoliticsLine(p.stage)}" else ""
+        return "Companion: ${lead ?: "No companion bonded yet"} | Route: $route | Arc(S/W/E): ${p.strengthArc}/${p.wisdomArc}/${p.empathyArc}\nGear: ${p.weaponName}, ${p.armorName}, ${p.accessoryName}\nLore: ${NarrativeEngine.regionLore(p.stage)} ${DialogueEngine.arcProgressLine(p)}$politics\n$affection"
     }
 
     private fun companionPortraitRes(p: PlayerProfile): Int {
@@ -301,7 +366,46 @@ class GameActivity : AppCompatActivity() {
             "Sera" -> R.drawable.portrait_sera
             "Mira" -> R.drawable.portrait_mira
             "Kaela" -> R.drawable.portrait_kaela
-            else -> R.drawable.portrait_party
+            "Veya" -> R.drawable.portrait_veya
+            "Iris" -> R.drawable.portrait_iris
+            else -> if (p.stage % 2 == 0) R.drawable.mc_render_auren else R.drawable.mc_render_auren_alt
         }
+    }
+
+    private fun setupMoveButton(button: View, dx: Float, dy: Float) {
+        button.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> binding.gameView.setMoveDirection(dx, dy)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> binding.gameView.setMoveDirection(0f, 0f)
+            }
+            true
+        }
+    }
+
+    private fun applyTypewriter(target: String) {
+        if (target == lastTypedLog) return
+        stopTypewriter()
+        lastTypedLog = target
+        binding.logText.text = ""
+        var index = 0
+        val step = when {
+            target.length > 240 -> 3
+            target.length > 120 -> 2
+            else -> 1
+        }
+        typewriterRunnable = object : Runnable {
+            override fun run() {
+                if (index >= target.length) return
+                index = minOf(target.length, index + step)
+                binding.logText.text = target.substring(0, index)
+                typewriterHandler.postDelayed(this, 14L)
+            }
+        }
+        typewriterHandler.post(typewriterRunnable!!)
+    }
+
+    private fun stopTypewriter() {
+        typewriterRunnable?.let { typewriterHandler.removeCallbacks(it) }
+        typewriterRunnable = null
     }
 }

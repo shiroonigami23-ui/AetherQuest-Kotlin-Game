@@ -8,12 +8,12 @@ object CampEngine {
         val p = session.player
         val cost = 24 + p.level
         if (p.coins < cost) {
-            session.lastLog = "Not enough coins for potion. Need $cost."
+            session.lastLog = DialogueEngine.shopFail("Potion", cost)
             return false
         }
         p.coins -= cost
         p.potions += 1
-        session.lastLog = "Bought potion for $cost coins."
+        session.lastLog = DialogueEngine.shopPurchase("Potion", cost)
         return true
     }
 
@@ -21,12 +21,12 @@ object CampEngine {
         val p = session.player
         val cost = 45 + p.level * 2
         if (p.coins < cost) {
-            session.lastLog = "Not enough coins for elixir. Need $cost."
+            session.lastLog = DialogueEngine.shopFail("Elixir", cost)
             return false
         }
         p.coins -= cost
         p.elixirs += 1
-        session.lastLog = "Bought elixir for $cost coins."
+        session.lastLog = DialogueEngine.shopPurchase("Elixir", cost)
         return true
     }
 
@@ -34,12 +34,12 @@ object CampEngine {
         val p = session.player
         val cost = 38 + p.level
         if (p.coins < cost) {
-            session.lastLog = "Not enough coins for bomb. Need $cost."
+            session.lastLog = DialogueEngine.shopFail("Bomb", cost)
             return false
         }
         p.coins -= cost
         p.bombs += 1
-        session.lastLog = "Bought bomb for $cost coins."
+        session.lastLog = DialogueEngine.shopPurchase("Bomb", cost)
         return true
     }
 
@@ -47,13 +47,13 @@ object CampEngine {
         val p = session.player
         val cost = max(12, p.level * 4)
         if (p.coins < cost) {
-            session.lastLog = "Camp rest costs $cost coins."
+            session.lastLog = "Innkeeper Mara: \"A bed and hot stew costs $cost coins tonight.\""
             return false
         }
         p.coins -= cost
         p.hp = p.maxHp
         p.skillCharges = min(p.skillCharges + 1, 4 + p.level / 4)
-        session.lastLog = "You rested at camp and recovered fully."
+        session.lastLog = "${DialogueEngine.campRestLine()} ${DialogueEngine.npcJokeLine()}"
         return true
     }
 
@@ -61,12 +61,13 @@ object CampEngine {
         val p = session.player
         val cost = 70 + p.weaponTier * 45
         if (p.coins < cost || p.gems < 1) {
-            session.lastLog = "Weapon upgrade needs $cost coins + 1 gem."
+            session.lastLog = "Blacksmith Toren: \"Need $cost coins and 1 gem for this forge step.\""
             return false
         }
         p.coins -= cost
         p.gems -= 1
         p.weaponTier += 1
+        p.weaponMastery += 2
         p.weaponName = when {
             p.weaponTier >= 8 -> "Celestial Dragonfang"
             p.weaponTier >= 6 -> "Moonlit Warblade"
@@ -74,7 +75,8 @@ object CampEngine {
             p.weaponTier >= 2 -> "Knightsteel Edge"
             else -> "Rustforged Blade"
         }
-        session.lastLog = "Weapon forged to Tier ${p.weaponTier}."
+        p.weaponTrait = resolveWeaponTrait(p)
+        session.lastLog = "${DialogueEngine.smithWeaponLine(p.weaponName, p.weaponTier, p.weaponTrait)} Mastery ${p.weaponMastery}."
         return true
     }
 
@@ -82,7 +84,7 @@ object CampEngine {
         val p = session.player
         val cost = 65 + p.armorTier * 40
         if (p.coins < cost || p.gems < 1) {
-            session.lastLog = "Armor upgrade needs $cost coins + 1 gem."
+            session.lastLog = "Armorer Brunn: \"Bring $cost coins and 1 gem for reinforced plating.\""
             return false
         }
         p.coins -= cost
@@ -95,7 +97,7 @@ object CampEngine {
             p.armorTier >= 2 -> "Tempered Bastion"
             else -> "Traveler Mail"
         }
-        session.lastLog = "Armor reinforced to Tier ${p.armorTier}."
+        session.lastLog = DialogueEngine.smithArmorLine(p.armorName, p.armorTier)
         return true
     }
 
@@ -103,7 +105,7 @@ object CampEngine {
         val p = session.player
         val cost = 90 + p.level * 3
         if (p.coins < cost || p.relicShards < 2) {
-            session.lastLog = "Accessory craft needs $cost coins + 2 relic shards."
+            session.lastLog = "Relic Smith: \"Accessory craft needs $cost coins + 2 relic shards.\""
             return false
         }
         p.coins -= cost
@@ -116,20 +118,23 @@ object CampEngine {
         when (p.accessoryName) {
             "Heartbound Sigil" -> p.empathyArc += 1
             "Aether Compass" -> p.wisdomArc += 1
-            else -> p.strengthArc += 1
+            else -> {
+                p.strengthArc += 1
+                p.weaponMastery += 1
+            }
         }
-        session.lastLog = "Forged accessory: ${p.accessoryName}."
+        session.lastLog = "Relic Smith: \"Forged ${p.accessoryName}.\" ${DialogueEngine.arcProgressLine(p)}"
         return true
     }
 
     fun openChest(session: GameSession): Boolean {
         val p = session.player
         if (!session.chestReady) {
-            session.lastLog = "No chest discovered yet."
+            session.lastLog = "Scout Nyra: \"No chest marks nearby right now.\""
             return false
         }
         if (p.keys <= 0) {
-            session.lastLog = "Chest found, but you need a key."
+            session.lastLog = "Scout Nyra: \"Chest found, but we need a key.\""
             return false
         }
         p.keys -= 1
@@ -138,18 +143,18 @@ object CampEngine {
         p.gems += 1
         p.bombs += 1
         p.elixirs += 1
-        session.lastLog = "Treasure chest opened: coins, gem, bomb, and elixir!"
+        session.lastLog = "Treasure chest opened. Quartermaster cheers and logs new supplies."
         return true
     }
 
     fun exploreSecret(session: GameSession): Boolean {
         val p = session.player
         if (p.stage < 6) {
-            session.lastLog = "Secret sites unlock after Stage 6."
+            session.lastLog = "Mira: \"We can trace secret routes once you reach Stage 6.\""
             return false
         }
         if (p.relicShards <= 0) {
-            session.lastLog = "You need relic shards to trace secret routes."
+            session.lastLog = "Mira: \"Bring relic shards. The shrine paths answer to them.\""
             return false
         }
         p.relicShards -= 1
@@ -157,7 +162,25 @@ object CampEngine {
         p.coins += 55
         p.affinityMira += 1
         p.wisdomArc += 1
-        session.lastLog = "Secret shrine found. Mira's trust grows."
+        session.lastLog = "Secret shrine discovered. Mira smiles and shares old route maps."
         return true
+    }
+
+    private fun resolveWeaponTrait(p: PlayerProfile): WeaponTrait {
+        return when (p.heroClass) {
+            HeroClass.KNIGHT -> when {
+                p.weaponTier >= 8 -> WeaponTrait.LIFESTEAL
+                p.weaponTier >= 4 -> WeaponTrait.PIERCE
+                else -> WeaponTrait.BALANCED
+            }
+            HeroClass.RANGER -> when {
+                p.weaponTier >= 8 -> WeaponTrait.PIERCE
+                else -> WeaponTrait.CRIT
+            }
+            HeroClass.MYSTIC -> when {
+                p.weaponTier >= 7 -> WeaponTrait.LIFESTEAL
+                else -> WeaponTrait.ARCANE
+            }
+        }
     }
 }

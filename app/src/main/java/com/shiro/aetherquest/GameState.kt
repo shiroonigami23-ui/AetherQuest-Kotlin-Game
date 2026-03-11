@@ -3,12 +3,16 @@ package com.shiro.aetherquest
 enum class HeroClass { KNIGHT, RANGER, MYSTIC }
 enum class DifficultyMode { STORY, EASY, HARD, EXTREME }
 enum class RelationshipStyle { UNSET, SINGLE, THROUPLE, HAREM }
+enum class WeaponTrait { BALANCED, CRIT, LIFESTEAL, PIERCE, ARCANE }
+enum class EnemyIntent { ATTACK, HEAVY, GUARD, DRAIN, ENRAGE }
+enum class CameraMode { TOP_DOWN, THIRD_PERSON, FIRST_PERSON }
 
 enum class LootRarity { COMMON, RARE, EPIC }
 enum class EndingType { NONE, TRAGIC, RUTHLESS, HEROIC, ROMANTIC, THROUPLE, HAREM, LONE_WOLF }
 
 data class PlayerProfile(
     var heroClass: HeroClass,
+    var heroName: String = "Auren Valen",
     var level: Int = 1,
     var xp: Int = 0,
     var stage: Int = 1,
@@ -34,6 +38,8 @@ data class PlayerProfile(
     var affinitySera: Int = 0,
     var affinityMira: Int = 0,
     var affinityKaela: Int = 0,
+    var affinityVeya: Int = 0,
+    var affinityIris: Int = 0,
     var affinityCrown: Int = 0,
     var chapter: Int = 1,
     var strengthArc: Int = 0,
@@ -46,7 +52,11 @@ data class PlayerProfile(
     var weaponName: String = "Rustforged Blade",
     var armorName: String = "Traveler Mail",
     var accessoryName: String = "Plain Charm",
-    var relationshipStyle: RelationshipStyle = RelationshipStyle.UNSET
+    var relationshipStyle: RelationshipStyle = RelationshipStyle.UNSET,
+    var weaponTrait: WeaponTrait = WeaponTrait.BALANCED,
+    var weaponMastery: Int = 0,
+    var worldX: Float = -1f,
+    var worldY: Float = -1f
 )
 
 data class Enemy(
@@ -75,7 +85,14 @@ data class GameSession(
     var difficultyMode: DifficultyMode = DifficultyMode.EASY,
     var discoveredSecrets: Int = 0,
     var timedEventTick: Int = 0,
-    var chestReady: Boolean = false
+    var chestReady: Boolean = false,
+    var enemyIntent: EnemyIntent = EnemyIntent.ATTACK,
+    var enemyShieldTurns: Int = 0,
+    var enemyChargeTurns: Int = 0,
+    var playerBleedTurns: Int = 0,
+    var comboCount: Int = 0,
+    var turnCounter: Int = 0,
+    var cameraMode: CameraMode = CameraMode.THIRD_PERSON
 )
 
 object GameFactory {
@@ -84,6 +101,11 @@ object GameFactory {
             HeroClass.KNIGHT -> PlayerProfile(heroClass, maxHp = 150, hp = 150, attack = 18, defense = 12, critChance = 0.12f)
             HeroClass.RANGER -> PlayerProfile(heroClass, maxHp = 120, hp = 120, attack = 22, defense = 8, critChance = 0.18f)
             HeroClass.MYSTIC -> PlayerProfile(heroClass, maxHp = 110, hp = 110, attack = 24, defense = 7, critChance = 0.14f)
+        }
+        profile.weaponTrait = when (heroClass) {
+            HeroClass.KNIGHT -> WeaponTrait.BALANCED
+            HeroClass.RANGER -> WeaponTrait.CRIT
+            HeroClass.MYSTIC -> WeaponTrait.ARCANE
         }
         profile.lives = when (difficulty) {
             DifficultyMode.STORY -> 99

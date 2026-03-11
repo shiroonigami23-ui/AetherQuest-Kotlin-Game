@@ -11,6 +11,7 @@ object SaveManager {
         val p = session.player
         val obj = JSONObject().apply {
             put("heroClass", p.heroClass.name)
+            put("heroName", p.heroName)
             put("level", p.level)
             put("xp", p.xp)
             put("stage", p.stage)
@@ -36,6 +37,8 @@ object SaveManager {
             put("affinitySera", p.affinitySera)
             put("affinityMira", p.affinityMira)
             put("affinityKaela", p.affinityKaela)
+            put("affinityVeya", p.affinityVeya)
+            put("affinityIris", p.affinityIris)
             put("affinityCrown", p.affinityCrown)
             put("chapter", p.chapter)
             put("strengthArc", p.strengthArc)
@@ -49,6 +52,10 @@ object SaveManager {
             put("armorName", p.armorName)
             put("accessoryName", p.accessoryName)
             put("relationshipStyle", p.relationshipStyle.name)
+            put("weaponTrait", p.weaponTrait.name)
+            put("weaponMastery", p.weaponMastery)
+            put("worldX", p.worldX.toDouble())
+            put("worldY", p.worldY.toDouble())
             put("gameOver", session.gameOver)
             put("ending", session.ending.name)
             put("storyPrompt", session.storyPrompt)
@@ -60,6 +67,13 @@ object SaveManager {
             put("discoveredSecrets", session.discoveredSecrets)
             put("timedEventTick", session.timedEventTick)
             put("chestReady", session.chestReady)
+            put("enemyIntent", session.enemyIntent.name)
+            put("enemyShieldTurns", session.enemyShieldTurns)
+            put("enemyChargeTurns", session.enemyChargeTurns)
+            put("playerBleedTurns", session.playerBleedTurns)
+            put("comboCount", session.comboCount)
+            put("turnCounter", session.turnCounter)
+            put("cameraMode", session.cameraMode.name)
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -73,6 +87,7 @@ object SaveManager {
             val o = JSONObject(raw)
             val profile = PlayerProfile(
                 heroClass = HeroClass.valueOf(o.getString("heroClass")),
+                heroName = o.optString("heroName", "Auren Valen"),
                 level = o.getInt("level"),
                 xp = o.getInt("xp"),
                 stage = o.getInt("stage"),
@@ -98,6 +113,8 @@ object SaveManager {
                 affinitySera = o.optInt("affinitySera", 0),
                 affinityMira = o.optInt("affinityMira", 0),
                 affinityKaela = o.optInt("affinityKaela", 0),
+                affinityVeya = o.optInt("affinityVeya", 0),
+                affinityIris = o.optInt("affinityIris", 0),
                 affinityCrown = o.optInt("affinityCrown", 0),
                 chapter = o.optInt("chapter", 1),
                 strengthArc = o.optInt("strengthArc", 0),
@@ -110,24 +127,59 @@ object SaveManager {
                 weaponName = o.optString("weaponName", "Rustforged Blade"),
                 armorName = o.optString("armorName", "Traveler Mail"),
                 accessoryName = o.optString("accessoryName", "Plain Charm"),
-                relationshipStyle = RelationshipStyle.valueOf(o.optString("relationshipStyle", RelationshipStyle.UNSET.name))
+                relationshipStyle = parseRelationshipStyle(o.optString("relationshipStyle", RelationshipStyle.UNSET.name)),
+                weaponTrait = parseWeaponTrait(o.optString("weaponTrait", WeaponTrait.BALANCED.name)),
+                weaponMastery = o.optInt("weaponMastery", 0),
+                worldX = o.optDouble("worldX", -1.0).toFloat(),
+                worldY = o.optDouble("worldY", -1.0).toFloat()
             )
             GameSession(
                 player = profile,
                 gameOver = o.optBoolean("gameOver", false),
-                ending = EndingType.valueOf(o.optString("ending", EndingType.NONE.name)),
+                ending = parseEndingType(o.optString("ending", EndingType.NONE.name)),
                 storyPrompt = o.optString("storyPrompt", ""),
                 choiceA = o.optString("choiceA", ""),
                 choiceB = o.optString("choiceB", ""),
                 pendingStoryEvent = o.optString("pendingStoryEvent", ""),
                 storyEventsSeen = o.optString("storyEventsSeen", ""),
-                difficultyMode = DifficultyMode.valueOf(o.optString("difficultyMode", DifficultyMode.EASY.name)),
+                difficultyMode = parseDifficultyMode(o.optString("difficultyMode", DifficultyMode.EASY.name)),
                 discoveredSecrets = o.optInt("discoveredSecrets", 0),
                 timedEventTick = o.optInt("timedEventTick", 0),
-                chestReady = o.optBoolean("chestReady", false)
+                chestReady = o.optBoolean("chestReady", false),
+                enemyIntent = parseEnemyIntent(o.optString("enemyIntent", EnemyIntent.ATTACK.name)),
+                enemyShieldTurns = o.optInt("enemyShieldTurns", 0),
+                enemyChargeTurns = o.optInt("enemyChargeTurns", 0),
+                playerBleedTurns = o.optInt("playerBleedTurns", 0),
+                comboCount = o.optInt("comboCount", 0),
+                turnCounter = o.optInt("turnCounter", 0),
+                cameraMode = parseCameraMode(o.optString("cameraMode", CameraMode.THIRD_PERSON.name))
             )
         } catch (_: Exception) {
             null
         }
+    }
+
+    private fun parseDifficultyMode(name: String): DifficultyMode {
+        return runCatching { DifficultyMode.valueOf(name) }.getOrDefault(DifficultyMode.EASY)
+    }
+
+    private fun parseEndingType(name: String): EndingType {
+        return runCatching { EndingType.valueOf(name) }.getOrDefault(EndingType.NONE)
+    }
+
+    private fun parseWeaponTrait(name: String): WeaponTrait {
+        return runCatching { WeaponTrait.valueOf(name) }.getOrDefault(WeaponTrait.BALANCED)
+    }
+
+    private fun parseEnemyIntent(name: String): EnemyIntent {
+        return runCatching { EnemyIntent.valueOf(name) }.getOrDefault(EnemyIntent.ATTACK)
+    }
+
+    private fun parseRelationshipStyle(name: String): RelationshipStyle {
+        return runCatching { RelationshipStyle.valueOf(name) }.getOrDefault(RelationshipStyle.UNSET)
+    }
+
+    private fun parseCameraMode(name: String): CameraMode {
+        return runCatching { CameraMode.valueOf(name) }.getOrDefault(CameraMode.THIRD_PERSON)
     }
 }

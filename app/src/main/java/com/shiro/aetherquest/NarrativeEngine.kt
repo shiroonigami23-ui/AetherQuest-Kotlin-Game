@@ -7,8 +7,11 @@ object NarrativeEngine {
         "evt_sera_vanguard" to 8,
         "evt_mira_shrine" to 10,
         "evt_kaela_court" to 12,
-        "evt_rel_style" to 14,
-        "evt_final_oath" to 18
+        "evt_veya_dunes" to 13,
+        "evt_iris_harbor" to 15,
+        "evt_rel_style" to 17,
+        "evt_main_boss_path" to 21,
+        "evt_final_oath" to 24
     )
 
     fun maybeTriggerStory(session: GameSession) {
@@ -20,8 +23,11 @@ object NarrativeEngine {
             "evt_lyra_archive" -> setPrompt(session, next.first, "Scholar Lyra reveals lost lore of your bloodline.", "Study With Lyra", "Ignore The Lore")
             "evt_sera_vanguard" -> setPrompt(session, next.first, "Captain Sera wants you to drill with the Vanguard.", "Train With Sera", "Travel Alone")
             "evt_mira_shrine" -> setPrompt(session, next.first, "Mira guides you to forbidden ruins and secret paths.", "Explore With Mira", "Decline")
-            "evt_kaela_court" -> setPrompt(session, next.first, "Lady Kaela offers influence at the royal court.", "Accept Court Pact", "Reject The Crown")
+            "evt_kaela_court" -> setPrompt(session, next.first, "Lady Kaela reveals court bribery, famine hoarding, and noble betrayal.", "Expose Corrupt Lords", "Join Political Circle")
+            "evt_veya_dunes" -> setPrompt(session, next.first, "Veya, a rogue cartographer, offers secret map routes and a risky date under the moon dunes.", "Trust Veya", "Decline")
+            "evt_iris_harbor" -> setPrompt(session, next.first, "Iris, the harbor tactician, invites you to spar and share stories over cider.", "Spend Night With Iris", "Stay On Patrol")
             "evt_rel_style" -> setPrompt(session, next.first, "Choose your heart's path before fate closes in.", "Commit Single/Throuple", "Pursue Open Harem Route")
+            "evt_main_boss_path" -> setPrompt(session, next.first, "The Abyss Sovereign awakens. Choose your assault route.", "Direct Siege", "Find Secret Boss Keys")
             "evt_final_oath" -> setPrompt(session, next.first, "Final Oath: rule by fear or protect all realms?", "Protect All Realms", "Rule Through Fear")
         }
         session.player.chapter = when {
@@ -75,22 +81,54 @@ object NarrativeEngine {
             }
             "evt_kaela_court" -> if (chooseA) {
                 p.affinityKaela += 2
-                p.affinityCrown += 2
-                p.coins += 120
-                session.lastLog = "Kaela grants influence and wealth."
-            } else {
-                p.affinityKaela -= 1
                 p.affinityCrown -= 1
+                p.empathyArc += 2
+                p.coins += 60
+                session.lastLog = "You expose greed in court. Citizens and your officers swear loyalty."
+            } else {
+                p.affinityKaela += 1
+                p.affinityCrown += 3
+                p.wisdomArc += 1
+                p.coins += 150
+                session.lastLog = "You enter political games, trading favors for power and coin."
+            }
+            "evt_veya_dunes" -> if (chooseA) {
+                p.affinityVeya += 3
+                p.wisdomArc += 1
+                session.discoveredSecrets += 2
+                session.lastLog = "Veya sketches hidden canyon routes and laughs beside the fire."
+            } else {
+                p.affinityVeya -= 1
+                p.strengthArc += 1
+                session.lastLog = "You keep your distance and march under strict discipline."
+            }
+            "evt_iris_harbor" -> if (chooseA) {
+                p.affinityIris += 3
                 p.empathyArc += 1
-                session.lastLog = "You reject court power and stand with the people."
+                p.attack += 1
+                session.lastLog = "Iris trains with you all night, then shares stories at harbor lights."
+            } else {
+                p.affinityIris -= 1
+                p.affinityCrown += 1
+                session.lastLog = "You skip the harbor and focus on command reports."
             }
             "evt_rel_style" -> if (chooseA) {
                 p.relationshipStyle = if (topRomances(p).size >= 2) RelationshipStyle.THROUPLE else RelationshipStyle.SINGLE
-                session.lastLog = "You choose devotion over excess."
+                session.lastLog = "You choose devoted love. Your companions trust you with their hearts."
             } else {
                 p.relationshipStyle = RelationshipStyle.HAREM
                 p.affinityCrown += 1
                 session.lastLog = "You walk an open, dangerous heart path."
+            }
+            "evt_main_boss_path" -> if (chooseA) {
+                p.strengthArc += 2
+                p.attack += 2
+                session.lastLog = "You gather banners and prepare a direct siege on the Abyss Sovereign."
+            } else {
+                p.wisdomArc += 2
+                p.relicShards += 2
+                session.discoveredSecrets += 2
+                session.lastLog = "You hunt secret bosses for runic keys before the final gate."
             }
             "evt_final_oath" -> if (chooseA) {
                 p.empathyArc += 2
@@ -132,7 +170,7 @@ object NarrativeEngine {
                 val names = p?.let { topRomances(it).take(2).joinToString(" & ") } ?: "two companions"
                 "Twin Flame Pact: You rule in balance with $names."
             }
-            EndingType.HAREM -> "Radiant Court: You unite all five hearts under one vow."
+            EndingType.HAREM -> "Radiant Court: You unite every bonded heart under one vow."
             EndingType.HEROIC -> "Guardian Ascendant: Every realm survives under your protection."
             EndingType.RUTHLESS -> "Iron Dominion: The world kneels beneath your command."
             EndingType.LONE_WOLF -> "Wanderer King: You save the realm but walk alone."
@@ -151,13 +189,35 @@ object NarrativeEngine {
         }
     }
 
+    fun regionLore(stage: Int): String {
+        return when {
+            stage < 5 -> "The plains hide old watchtowers where caravans vanish at dusk."
+            stage < 10 -> "Frostwild winds carry memories of the first vanguard war."
+            stage < 15 -> "Sanctum ruins pulse with relic energy and sealed oaths."
+            stage < 20 -> "Ashen Crown is ruled by broken guilds and wandering blades."
+            else -> "Skyforge Citadel is the final throne where all routes converge."
+        }
+    }
+
+    fun stageObjective(stage: Int): String {
+        return when {
+            stage < 5 -> "Scout routes, secure cache points, and clear 2 roaming packs."
+            stage < 10 -> "Find relic shards in frozen shrines and defeat a captain."
+            stage < 15 -> "Recover archive sigils and protect caravans from ambushes."
+            stage < 20 -> "Disrupt crown outposts and secure forge fragments."
+            else -> "Conquer the citadel gates and decide the realm's final oath."
+        }
+    }
+
     fun topRomances(p: PlayerProfile): List<String> {
         return listOf(
             "Nyra" to p.affinityNyra,
             "Lyra" to p.affinityLyra,
             "Sera" to p.affinitySera,
             "Mira" to p.affinityMira,
-            "Kaela" to p.affinityKaela
+            "Kaela" to p.affinityKaela,
+            "Veya" to p.affinityVeya,
+            "Iris" to p.affinityIris
         ).sortedByDescending { it.second }
             .filter { it.second >= 6 }
             .map { it.first }
@@ -169,12 +229,14 @@ object NarrativeEngine {
             "Lyra" to p.affinityLyra,
             "Sera" to p.affinitySera,
             "Mira" to p.affinityMira,
-            "Kaela" to p.affinityKaela
+            "Kaela" to p.affinityKaela,
+            "Veya" to p.affinityVeya,
+            "Iris" to p.affinityIris
         ).maxBy { it.second }.first
     }
 
     private fun romanceCountHigh(p: PlayerProfile): Int {
-        return listOf(p.affinityNyra, p.affinityLyra, p.affinitySera, p.affinityMira, p.affinityKaela).count { it >= 8 }
+        return listOf(p.affinityNyra, p.affinityLyra, p.affinitySera, p.affinityMira, p.affinityKaela, p.affinityVeya, p.affinityIris).count { it >= 8 }
     }
 
     private fun seen(session: GameSession, key: String): Boolean {
