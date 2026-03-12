@@ -1,6 +1,7 @@
 package com.shiro.aetherquest
 
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +23,12 @@ class GameActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        GameAudio.init(this)
+        if (!AssetRepository.isLoaded()) {
+            startActivity(Intent(this, LoadingActivity::class.java))
+            finish()
+            return
+        }
         session = runCatching { SaveManager.load(this) }.getOrNull()
             ?: GameFactory.newSession(HeroClass.KNIGHT, DifficultyMode.EASY)
         runCatching {

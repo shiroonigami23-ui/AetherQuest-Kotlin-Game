@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openGame() {
         GameAudio.playSwitch()
-        startActivity(Intent(this, GameActivity::class.java))
+        startActivity(Intent(this, LoadingActivity::class.java))
     }
 
     override fun onResume() {

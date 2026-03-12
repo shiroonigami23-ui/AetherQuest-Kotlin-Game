@@ -2,7 +2,6 @@ package com.shiro.aetherquest
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
@@ -74,27 +73,27 @@ class GameRendererView @JvmOverloads constructor(
         textSize = 34f
     }
 
-    private val heroBitmap = decodeBitmapSafe(R.drawable.hero_sheet, sample = 1)
-    private val regionPlains = decodeBitmapSafe(R.drawable.region_whispering_plains, sample = 2)
-    private val regionFrost = decodeBitmapSafe(R.drawable.region_frostwild_pass, sample = 2)
-    private val regionSanctum = decodeBitmapSafe(R.drawable.region_sunken_sanctum, sample = 2)
-    private val regionAshen = decodeBitmapSafe(R.drawable.region_ashen_crown, sample = 2)
-    private val regionSkyforge = decodeBitmapSafe(R.drawable.region_skyforge_citadel, sample = 2)
-    private val worldVariantDrone = decodeBitmapSafe(R.drawable.world_variant_drone, sample = 2)
-    private val worldVariantObserver = decodeBitmapSafe(R.drawable.world_variant_observer, sample = 2)
-    private val worldVariantSentinel = decodeBitmapSafe(R.drawable.world_variant_sentinel, sample = 2)
-    private val worldVariantSlug = decodeBitmapSafe(R.drawable.world_variant_slug, sample = 2)
-    private val worldVariantEagle = decodeBitmapSafe(R.drawable.world_variant_eagle, sample = 2)
-    private val enemyDrone = decodeBitmapSafe(R.drawable.enemy_drone, sample = 1)
-    private val enemySentinel = decodeBitmapSafe(R.drawable.enemy_sentinel, sample = 1)
-    private val enemyObserver = decodeBitmapSafe(R.drawable.enemy_observer, sample = 1)
-    private val enemySteelEagle = decodeBitmapSafe(R.drawable.enemy_steel_eagle, sample = 1)
-    private val enemyMetalSlug = decodeBitmapSafe(R.drawable.enemy_metal_slug, sample = 1)
-    private val bgDrone = decodeBitmapSafe(R.drawable.enemy_bg_drone, sample = 2)
-    private val bgSentinel = decodeBitmapSafe(R.drawable.enemy_bg_sentinel, sample = 2)
-    private val bgObserver = decodeBitmapSafe(R.drawable.enemy_bg_observer, sample = 2)
-    private val bgSlug = decodeBitmapSafe(R.drawable.enemy_bg_slug, sample = 2)
-    private val bgSteel = decodeBitmapSafe(R.drawable.enemy_bg_steel_eagle, sample = 2)
+    private val heroBitmap: Bitmap? get() = AssetRepository.heroBitmap
+    private val regionPlains: Bitmap? get() = AssetRepository.regionPlains
+    private val regionFrost: Bitmap? get() = AssetRepository.regionFrost
+    private val regionSanctum: Bitmap? get() = AssetRepository.regionSanctum
+    private val regionAshen: Bitmap? get() = AssetRepository.regionAshen
+    private val regionSkyforge: Bitmap? get() = AssetRepository.regionSkyforge
+    private val worldVariantDrone: Bitmap? get() = AssetRepository.worldVariantDrone
+    private val worldVariantObserver: Bitmap? get() = AssetRepository.worldVariantObserver
+    private val worldVariantSentinel: Bitmap? get() = AssetRepository.worldVariantSentinel
+    private val worldVariantSlug: Bitmap? get() = AssetRepository.worldVariantSlug
+    private val worldVariantEagle: Bitmap? get() = AssetRepository.worldVariantEagle
+    private val enemyDrone: Bitmap? get() = AssetRepository.enemyDrone
+    private val enemySentinel: Bitmap? get() = AssetRepository.enemySentinel
+    private val enemyObserver: Bitmap? get() = AssetRepository.enemyObserver
+    private val enemySteelEagle: Bitmap? get() = AssetRepository.enemySteelEagle
+    private val enemyMetalSlug: Bitmap? get() = AssetRepository.enemyMetalSlug
+    private val bgDrone: Bitmap? get() = AssetRepository.bgDrone
+    private val bgSentinel: Bitmap? get() = AssetRepository.bgSentinel
+    private val bgObserver: Bitmap? get() = AssetRepository.bgObserver
+    private val bgSlug: Bitmap? get() = AssetRepository.bgSlug
+    private val bgSteel: Bitmap? get() = AssetRepository.bgSteel
 
     private val worldWidth = 3200f
     private val worldHeight = 2200f
@@ -262,11 +261,12 @@ class GameRendererView @JvmOverloads constructor(
         val frame = if (moving) ((SystemClock.elapsedRealtime() / 120L) % 3L).toInt() else 1
         val src = Rect(2 + frame * 16, 2, 16 + frame * 16, 18)
         val bob = if (moving) ((SystemClock.elapsedRealtime() % 300L) / 300f) * 6f else 0f
+        val hero = heroBitmap
         when (s.cameraMode) {
             CameraMode.TOP_DOWN -> {
                 val heroDst = RectF(width / 2f - 40f, height / 2f - 58f - bob, width / 2f + 40f, height / 2f + 42f - bob)
-                if (heroBitmap != null) {
-                    canvas.drawBitmap(heroBitmap, src, heroDst, null)
+                if (hero != null) {
+                    canvas.drawBitmap(hero, src, heroDst, null)
                 } else {
                     shapePaint.color = Color.parseColor("#22D3EE")
                     canvas.drawCircle(width / 2f, height / 2f, 22f, shapePaint)
@@ -274,8 +274,8 @@ class GameRendererView @JvmOverloads constructor(
             }
             CameraMode.THIRD_PERSON -> {
                 val heroDst = RectF(width / 2f - 64f, height * 0.68f - 72f - bob, width / 2f + 64f, height * 0.68f + 88f - bob)
-                if (heroBitmap != null) {
-                    canvas.drawBitmap(heroBitmap, src, heroDst, null)
+                if (hero != null) {
+                    canvas.drawBitmap(hero, src, heroDst, null)
                 } else {
                     shapePaint.color = Color.parseColor("#22D3EE")
                     canvas.drawCircle(width / 2f, height * 0.68f, 28f, shapePaint)
@@ -405,8 +405,9 @@ class GameRendererView @JvmOverloads constructor(
         val heroDst = RectF(width * 0.12f, groundY - 210f - bob, width * 0.32f, groundY - bob)
         val heroFrame = ((t / 140L) % 3L).toInt()
         val heroSrc = Rect(2 + heroFrame * 16, 2, 16 + heroFrame * 16, 18)
-        if (heroBitmap != null) {
-            canvas.drawBitmap(heroBitmap, heroSrc, heroDst, null)
+        val hero = heroBitmap
+        if (hero != null) {
+            canvas.drawBitmap(hero, heroSrc, heroDst, null)
         } else {
             shapePaint.color = Color.parseColor("#38BDF8")
             canvas.drawRoundRect(heroDst, 18f, 18f, shapePaint)
@@ -553,20 +554,6 @@ class GameRendererView @JvmOverloads constructor(
     private fun clamp(v: Float, lo: Float, hi: Float): Float = min(hi, max(lo, v))
 
     private fun distance(ax: Float, ay: Float, bx: Float, by: Float): Float = hypot(ax - bx, ay - by)
-
-    private fun decodeBitmapSafe(resId: Int, sample: Int): Bitmap? {
-        return try {
-            val opts = BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.RGB_565
-                inDither = true
-                inScaled = true
-                inSampleSize = sample.coerceAtLeast(1)
-            }
-            BitmapFactory.decodeResource(resources, resId, opts)
-        } catch (_: Throwable) {
-            null
-        }
-    }
 
     private fun applyPotLoot(s: GameSession): String {
         val p = s.player
